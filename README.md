@@ -4,7 +4,7 @@ Open a terminal in the root directoy of the project then run the following code 
 <br/>
 <br/>
 
-```powershell
+```shell
 python -m venv .venv
 .venv\Scripts\activate
 python -m pip install -r requirements.txt
