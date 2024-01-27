@@ -1,6 +1,7 @@
 black==23.12.1
 click==8.1.7
 colorama==0.4.6
+isort==5.13.2
 mypy-extensions==1.0.0
 packaging==23.2
 pathspec==0.12.1
