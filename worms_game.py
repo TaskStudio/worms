@@ -1,7 +1,7 @@
 import pygame
 from pygame import Surface, Color
-
 from src.worm import Worm
+from projectile import Projectile  # Import the Projectile class
 
 
 def main() -> None:
@@ -11,19 +11,12 @@ def main() -> None:
     screen: Surface = pygame.display.set_mode((1080, 720))
 
     running: bool = True
-
     worm: Worm = Worm(position=(200, 200))
-
     worms = pygame.sprite.Group(worm)
+    projectiles = pygame.sprite.Group()  # Group for projectiles
 
     while running:
         screen.fill(color=Color(255, 243, 230))
-
-        worms.draw(screen)
-        worms.update()
-
-        # Window refresh
-        pygame.display.flip()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -45,5 +38,21 @@ def main() -> None:
                     case pygame.K_LEFT | pygame.K_RIGHT:
                         worm.stop_moving()
 
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Create a projectile when the mouse is clicked
+                target_pos = pygame.mouse.get_pos()
+                projectile = Projectile(worm.rect.center, target_pos)
+                projectiles.add(projectile)
 
-main()
+        worms.draw(screen)
+        worms.update()
+        projectiles.update()  # Update projectiles
+        projectiles.draw(screen)  # Draw projectiles
+
+        pygame.display.flip()
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
