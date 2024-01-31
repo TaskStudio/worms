@@ -1,6 +1,7 @@
 import pygame
 from pygame import Surface, Color
 
+from src.map import MapElement
 from src.worm import Worm
 
 
@@ -16,9 +17,12 @@ def main() -> None:
 
     worms = pygame.sprite.Group(worm)
 
+    map: MapElement = MapElement(start_x=0, start_y=720, width=1080, height_diff=40)
+
     while running:
         screen.fill(color=Color(255, 243, 230))
 
+        map.draw(screen)
         worms.draw(screen)
         worms.update()
 
@@ -39,6 +43,8 @@ def main() -> None:
                         worm.move_left()
                     case pygame.K_RIGHT:
                         worm.move_right()
+                    case pygame.K_r:
+                        map = MapElement(start_x=0, start_y=720, width=1080, height_diff=100)
 
             if event.type == pygame.KEYUP:
                 match event.key:
