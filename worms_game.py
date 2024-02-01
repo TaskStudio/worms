@@ -2,7 +2,7 @@ import pygame
 from pygame import Surface, Color
 import math
 from src.worm import Worm
-from projectile import Projectile
+from src.projectile import Projectile
 
 
 def main() -> None:
@@ -16,9 +16,9 @@ def main() -> None:
     worms = pygame.sprite.Group(worm)
     projectiles = pygame.sprite.Group()
 
-    mouse_click_start_time = None
-    charging = False
-    max_charge_duration = 3000
+    mouse_click_start_time: float = None
+    charging: bool = False
+    max_charge_duration: int = 3000
 
     while running:
         screen.fill(color=Color(255, 243, 230))
