@@ -1,12 +1,13 @@
 from queue import Queue
+from typing import Optional
 
 import pygame
-import src.globals as g
-
 from pygame import Surface, Color, Vector2
 from pygame.sprite import Group, GroupSingle
 
+import src.globals as g
 from src.worm import Worm
+from src.projectile import Projectile
 
 
 def main() -> None:
@@ -26,6 +27,10 @@ def main() -> None:
     player_2_worms: Group[Worm] = Group([Worm(position=player_2_start_position - Vector2(i*100, 0)) for i in range(g.WORMS_PER_PLAYER)])
 
     worms_group: Group[Worm] = Group([player_1_worms, player_2_worms])
+    
+    projectiles = pygame.sprite.Group()
+    max_charge_duration: int = 3000
+    current_projectile: Optional[Projectile] = None
 
     worms_queue: Queue[Worm] = Queue(maxsize=len(worms_group))
     for worms in zip(player_1_worms, player_2_worms):
@@ -48,8 +53,6 @@ def main() -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-                pygame.quit()
-
             if event.type == pygame.KEYDOWN:
                 match event.key:
                     case pygame.K_ESCAPE:
@@ -65,9 +68,33 @@ def main() -> None:
                         worms_queue.put(current_worm)
 
             if event.type == pygame.KEYUP:
+                if event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
+                    worm.stop_moving()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if not current_projectile:
+                    current_projectile = Projectile(worm.rect.center, pygame.mouse.get_pos())
+                    current_projectile.start_charging()
+            if event.type == pygame.MOUSEBUTTONUP and current_projectile:
+                current_projectile.stop_charging(max_charge_duration)
+                projectiles.add(current_projectile)
+                current_projectile = None
+
+        worms.update()
+        worms.draw(screen)
                 match event.key:
                     case pygame.K_LEFT | pygame.K_RIGHT:
                         current_worm.stop_moving()
 
+        if current_projectile and current_projectile.charging:
+            current_projectile.draw_charge(screen, max_charge_duration)
 
-main()
+        projectiles.update()
+        projectiles.draw(screen)
+
+        pygame.display.flip()
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
