@@ -10,7 +10,7 @@ class Worm(Sprite):
     Class for the worms the players will control.
     """
 
-    def __init__(self, *, position: tuple[int, int] = (0, 0)) -> None:
+    def __init__(self, *, position: tuple[int, int] | Vector2 = (0, 0)) -> None:
         # Setup for the sprite class
         super().__init__()
         self.image: Surface = pygame.image.load("src/assets/worm.png")
