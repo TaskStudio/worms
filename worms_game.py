@@ -6,6 +6,7 @@ from pygame import Surface, Color, Vector2
 from pygame.sprite import Group
 
 import src.globals as g
+from src.map import MapElement
 from src.projectile import Projectile
 from src.worm import Worm
 
@@ -51,16 +52,12 @@ def main() -> None:
     max_charge_duration: int = 3000
     current_projectile: Optional[Projectile] = None
 
+    # Map setup
+    map: MapElement = MapElement(start_x=0, start_y=720, width=1080, height_diff=40)
+
     # Game loop
+    running: bool = True
     while running:
-        screen.fill(color=Color(255, 243, 230))
-
-        worms_group.draw(screen)
-        worms_group.update()
-
-        # Window refresh
-        pygame.display.flip()
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -79,7 +76,11 @@ def main() -> None:
                         current_worm.stop_moving()
                         current_worm = worms_queue.get()
                         worms_queue.put(current_worm)
-            # Key up events
+                    case pygame.K_r:
+                        map = MapElement(
+                            start_x=0, start_y=720, width=1080, height_diff=100
+                        )
+
             if event.type == pygame.KEYUP:
                 match event.key:
                     case pygame.K_LEFT | pygame.K_RIGHT:
@@ -97,15 +98,21 @@ def main() -> None:
                 projectiles.add(current_projectile)
                 current_projectile = None
 
-        worms.update()
-        worms.draw(screen)
-
         if current_projectile and current_projectile.charging:
             current_projectile.draw_charge(screen, max_charge_duration)
+
+        # Update
+        screen.fill(color=Color(255, 243, 230))
+
+        map.draw(screen)
+
+        worms_group.draw(screen)
+        worms_group.update()
 
         projectiles.update()
         projectiles.draw(screen)
 
+        # Window refresh
         pygame.display.flip()
 
     pygame.quit()
