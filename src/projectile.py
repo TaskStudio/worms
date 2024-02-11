@@ -22,11 +22,16 @@ class Projectile(pygame.sprite.Sprite):
         self.charging_start_time = pygame.time.get_ticks()
 
     def stop_charging(self, max_charge_duration):
+        if self.charging_start_time is None:
+            self.charging_start_time = pygame.time.get_ticks()
+
         charge_duration = pygame.time.get_ticks() - self.charging_start_time
         normalized_charge = min(charge_duration / max_charge_duration, 1)
-        min_speed = 1
+
+        min_speed = 10
         max_speed = 30
-        self.speed = min_speed + (max_speed - min_speed) * (normalized_charge ** 2)
+        self.speed = min_speed + (max_speed - min_speed) * normalized_charge
+
         self.charging = False
         self.launched = True
 
