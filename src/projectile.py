@@ -50,3 +50,27 @@ class Projectile(pygame.sprite.Sprite):
 
             charge_rect = pygame.Rect(self.rect.centerx + 20, self.rect.centery - 70, 50, 50)
             pygame.draw.arc(screen, charge_color, charge_rect, 0, charge_angle * (math.pi / 180), 5)
+
+    def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
+        x1, y1 = start_pos
+        x2, y2 = end_pos
+        dl = dash_length
+
+        if (x1 == x2):
+            ycoords = [y for y in range(y1, y2, dl if y1 < y2 else -dl)]
+            xcoords = [x1] * len(ycoords)
+        elif (y1 == y2):
+            xcoords = [x for x in range(x1, x2, dl if x1 < x2 else -dl)]
+            ycoords = [y1] * len(xcoords)
+        else:
+            a = (y2 - y1) / (x2 - x1)
+            b = y1 - a * x1
+            xcoords = [x for x in range(x1, x2, dl if x1 < x2 else -dl)]
+            ycoords = [round(a * x + b) for x in xcoords]
+
+        next_coords = list(zip(xcoords[1::2], ycoords[1::2]))
+        last_coords = list(zip(xcoords[0::2], ycoords[0::2]))
+        for (x1, y1), (x2, y2) in zip(last_coords, next_coords):
+            start = (x1, y1)
+            end = (x2, y2)
+            pygame.draw.line(surf, color, start, end, width)
