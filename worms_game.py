@@ -98,8 +98,7 @@ def main() -> None:
                 projectiles.add(current_projectile)
                 current_projectile = None
 
-        if current_projectile and current_projectile.charging:
-            current_projectile.draw_charge(screen, max_charge_duration)
+
 
         # Update
         screen.fill(color=Color(255, 243, 230))
@@ -111,6 +110,9 @@ def main() -> None:
 
         projectiles.update()
         projectiles.draw(screen)
+
+        if current_projectile and current_projectile.charging:
+            current_projectile.draw_charge(screen, max_charge_duration)
 
         # Window refresh
         pygame.display.flip()
