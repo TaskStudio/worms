@@ -114,11 +114,6 @@ def main() -> None:
         if current_projectile and current_projectile.charging:
             current_projectile.draw_charge(screen, max_charge_duration)
 
-        trajectory_color = (0, 0, 0)
-        start_pos = current_worm.rect.center
-        end_pos = pygame.mouse.get_pos()
-
-        Projectile.draw_dashed_line(screen, trajectory_color, start_pos, end_pos)
 
         # Window refresh
         pygame.display.flip()
