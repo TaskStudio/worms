@@ -10,12 +10,20 @@ class Projectile(pygame.sprite.Sprite):
         self.image = pygame.Surface((5, 5))
         self.image.fill(Color(255, 0, 0))
         self.rect = self.image.get_rect(center=start_pos)
+        self.start_pos = start_pos
         self.target_pos = target_pos
-        self.charging_start_time: Optional[float] = None
+        self.charging_start_time = None
         self.direction = (pygame.math.Vector2(target_pos) - pygame.math.Vector2(start_pos)).normalize()
         self.speed = 0
+        self.velocity = pygame.math.Vector2(0, 0)
         self.charging = False
         self.launched = False
+        self.gravity = 0.1  # Ajuste cette valeur pour changer l'effet de la gravité
+        self.launch_time = 0
+
+    def calculate_initial_velocity(self, angle, speed):
+        self.velocity.x = math.cos(angle) * speed
+        self.velocity.y = math.sin(angle) * speed
 
     def start_charging(self):
         self.charging = True
@@ -23,22 +31,25 @@ class Projectile(pygame.sprite.Sprite):
 
     def stop_charging(self, max_charge_duration):
         if self.charging_start_time is None:
-            self.charging_start_time = pygame.time.get_ticks()
+            return
 
         charge_duration = pygame.time.get_ticks() - self.charging_start_time
         normalized_charge = min(charge_duration / max_charge_duration, 1)
-
         min_speed = 10
         max_speed = 30
         self.speed = min_speed + (max_speed - min_speed) * normalized_charge
-
+        angle = math.atan2(self.target_pos[1] - self.start_pos[1], self.target_pos[0] - self.start_pos[0])
+        self.calculate_initial_velocity(angle, self.speed)
+        self.launch_time = pygame.time.get_ticks()
         self.charging = False
         self.launched = True
 
     def update(self):
         if self.launched:
-            self.rect.centerx += self.direction.x * self.speed
-            self.rect.centery += self.direction.y * self.speed
+            time_elapsed = (pygame.time.get_ticks() - self.launch_time) / 1000.0
+            self.velocity.y += self.gravity  # La gravité affecte la vitesse verticale
+            self.rect.x += self.velocity.x
+            self.rect.y += self.velocity.y - 0.5 * self.gravity * (time_elapsed ** 2)  # Trajectoire parabolique
 
     def draw_charge(self, screen, max_charge_duration):
         if self.charging:
