@@ -50,9 +50,11 @@ class Game:
         self.game_map: MapElement = MapElement(
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
         )
+        # Camera option
         self.camera_position = Vector2(0, 0)
         self.zoom_level = 1.0
         self.initial_zoom_level = 1.0
+
 
 
     def main(self):
@@ -117,9 +119,9 @@ class Game:
                         )
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Zoom in and out with mouse wheel
-                if event.button == 4:  # Mouse wheel up, zoom in
+                if event.button == g.MOUSE_WHEEL_UP:
                     self.zoom_level = min(self.zoom_level + 0.1, self.initial_zoom_level)
-                elif event.button == 5:  # Mouse wheel down, zoom out
+                elif event.button == g.MOUSE_WHEEL_DOWN:
                     self.zoom_level = max(self.zoom_level - 0.1, 0.7)
 
             if event.type == pygame.KEYUP:
@@ -129,7 +131,7 @@ class Game:
 
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
+                if event.button == g.MOUSE_LEFT_CLICK:
                     if not self.current_projectile:
                         self.current_projectile = Projectile(
                             self.current_worm.rect.center, pygame.mouse.get_pos()
@@ -137,7 +139,7 @@ class Game:
                         self.current_projectile.start_charging()
 
             if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1 and self.current_projectile:
+                if event.button == g.MOUSE_LEFT_CLICK and self.current_projectile:
                     self.current_projectile.stop_charging()
                     self.projectiles.add(self.current_projectile)
                     self.current_projectile = None
