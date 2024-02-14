@@ -50,8 +50,7 @@ class Game:
         self.game_map: MapElement = MapElement(
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
         )
-        self.camera_position = Vector2(0, 0)
-        self.zoom_level = 1.0
+
 
     def main(self):
         self.running = True
@@ -62,36 +61,21 @@ class Game:
         pygame.quit()
 
     def update(self):
-        # Adjust the camera to follow the current worm
-        self.camera_position.x = self.current_worm.rect.centerx - g.SCREEN_WIDTH / 2
-        self.camera_position.y = self.current_worm.rect.centery - g.SCREEN_HEIGHT / 2
+        self.screen.fill(color=Color(255, 243, 230))
 
-        # Debugging prints
-        print(f"Worm Position: {self.current_worm.rect.center}")
-        print(f"Camera Position: {self.camera_position}")
+        self.game_map.draw(self.screen)
 
-        self.screen.fill(Color(255, 243, 230))  # Clear the screen with the background color
-
-        # Draw the map with camera adjustments
-        self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
         self.worms_group.update()
-        self.projectiles.update(self.screen)
-        self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
-        self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
-        # Similarly adjust for projectiles or other sprites as needed
+        self.worms_group.draw(self.screen)
 
+        self.projectiles.update()
+        self.projectiles.draw(self.screen)
+
+        if self.current_projectile and self.current_projectile.charging:
+            self.current_projectile.draw_charge(self.screen)
+
+        # Window refresh
         pygame.display.flip()
-
-    def draw_sprites_with_camera_and_zoom(self, group, surface):
-        for sprite in group:
-            # Adjust position for camera and scale for zoom
-            adjusted_pos = (sprite.rect.topleft - self.camera_position) * self.zoom_level
-            # Scale sprite image
-            scaled_size = (int(sprite.rect.width * self.zoom_level), int(sprite.rect.height * self.zoom_level))
-            scaled_image = pygame.transform.scale(sprite.image, scaled_size)
-            # Calculate new blit position
-            new_blit_position = adjusted_pos
-            surface.blit(scaled_image, new_blit_position)
 
     def _handle_events(self):
         for event in pygame.event.get():
@@ -116,12 +100,6 @@ class Game:
                         self.game_map = MapElement(
                             start_x=0, start_y=720, width=1080, height_diff=100
                         )
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # Zoom in and out with mouse wheel
-                if event.button == 4:  # Mouse wheel up, zoom in
-                    self.zoom_level = min(self.zoom_level + 0.1, 2.0)  # Add a max zoom level limit
-                elif event.button == 5:  # Mouse wheel down, zoom out
-                    self.zoom_level = max(self.zoom_level - 0.1, 0.5)  # Add a min zoom level limit
 
             if event.type == pygame.KEYUP:
                 match event.key:
@@ -157,6 +135,7 @@ class Game:
             ]
         )
         return player_1_worms, player_2_worms
+
 
 
 if __name__ == "__main__":
