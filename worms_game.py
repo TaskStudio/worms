@@ -65,6 +65,17 @@ class Game:
 
         self.game_map.draw(self.screen)
 
+        # Gestion des collisions entre les projectiles et les worms
+        for projectile in self.projectiles:
+            # Détecter les worms touchés par le projectile
+            hit_worms = pygame.sprite.spritecollide(projectile, self.worms_group, False)
+            for hit_worm in hit_worms:
+                # On vérifie que le worm touché n'est pas le worm courant (celui qui tire)
+                if hit_worm != self.current_worm:
+                    self.worms_group.remove(hit_worm)
+                    projectile.kill()
+                    break
+
         self.worms_group.update()
         self.worms_group.draw(self.screen)
 
