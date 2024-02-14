@@ -28,5 +28,6 @@ class MapElement:
 
         self.points.append(Vector2(self.start_x, self.start_y))
 
-    def draw(self, screen) -> None:
-        pygame.draw.polygon(screen, (0, 100, 0), self.points)
+    def draw(self, screen, camera_position, zoom_level):
+        adjusted_points = [(Vector2(point.x - camera_position.x, point.y - camera_position.y) * zoom_level) for point in self.points]
+        pygame.draw.polygon(screen, (0, 100, 0), adjusted_points)
