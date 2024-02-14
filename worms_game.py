@@ -75,6 +75,8 @@ class Game:
         # Draw the map with camera adjustments
         self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
         self.worms_group.update()
+        self.projectiles.update(self.screen)
+        self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
         self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
         # Similarly adjust for projectiles or other sprites as needed
 
