@@ -52,6 +52,7 @@ class Game:
         )
         self.camera_position = Vector2(0, 0)
         self.zoom_level = 1.0
+        self.initial_zoom_level = 1.0
 
 
     def main(self):
@@ -117,9 +118,9 @@ class Game:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Zoom in and out with mouse wheel
                 if event.button == 4:  # Mouse wheel up, zoom in
-                    self.zoom_level = min(self.zoom_level + 0.1, 2.0)  # Add a max zoom level limit
+                    self.zoom_level = min(self.zoom_level + 0.1, self.initial_zoom_level)
                 elif event.button == 5:  # Mouse wheel down, zoom out
-                    self.zoom_level = max(self.zoom_level - 0.1, 0.5)  # Add a min zoom level limit
+                    self.zoom_level = max(self.zoom_level - 0.1, 0.7)
 
             if event.type == pygame.KEYUP:
                 match event.key:
