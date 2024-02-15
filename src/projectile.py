@@ -58,17 +58,18 @@ class Projectile(pygame.sprite.Sprite):
             self.rect.x = self.start_pos.x + displacement_x
             self.rect.y = self.start_pos.y + displacement_y
 
-    def draw_charge(self, screen):
+    def draw_charge(self, screen, camera_position, zoom_level):
         if self.charging:
             charge_duration = pygame.time.get_ticks() - self.charging_start_time
             normalized_charge = min(charge_duration / g.MAX_CHARGE_DURATION, 1)
 
             charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
-            charge_angle = normalized_charge * 360
 
+            # Adjust charge indicator position based on camera position and zoom
+            adjusted_center = (self.rect.center - camera_position) * zoom_level
             charge_rect = pygame.Rect(
-                self.rect.centerx + 20, self.rect.centery - 70, 50, 50
+                adjusted_center[0] + 20, adjusted_center[1] - 70, 50 * zoom_level, 50 * zoom_level
             )
             pygame.draw.arc(
-                screen, charge_color, charge_rect, 0, charge_angle * (math.pi / 180), 5
+                screen, charge_color, charge_rect, 0, math.pi * 2 * normalized_charge, int(5 * zoom_level)
             )

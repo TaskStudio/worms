@@ -13,28 +13,19 @@ from src.worm import Worm
 
 class Game:
     def __init__(self):
-        # Pygame setup
         pygame.init()
-
         pygame.display.set_caption("WORMS")
-        self.screen: Surface = pygame.display.set_mode(
-            (g.SCREEN_WIDTH, g.SCREEN_HEIGHT)
-        )
-
+        self.screen: Surface = pygame.display.set_mode((g.SCREEN_WIDTH, g.SCREEN_HEIGHT))
         self.running: bool = False
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
-            Vector2(100, g.SCREEN_HEIGHT),
-            Vector2(g.SCREEN_WIDTH - 100, g.SCREEN_HEIGHT),
+            Vector2(100, g.SCREEN_HEIGHT - 50),  # Adjust starting y to place worms at the bottom
+            Vector2(g.SCREEN_WIDTH - 100, g.SCREEN_HEIGHT - 50),
         )
-        self.worms_group: Group[Worm] = Group(
-            [self.player_1_worms, self.player_2_worms]
-        )  # Used for game logic and rendering
+        self.worms_group: Group[Worm] = Group([self.player_1_worms, self.player_2_worms])
 
-        self.worms_queue: Queue[Worm] = Queue(
-            maxsize=len(self.worms_group)
-        )  # Used for turn-based logic
+        self.worms_queue: Queue[Worm] = Queue(maxsize=len(self.worms_group))
         for worms in zip(self.player_1_worms, self.player_2_worms):
             self.worms_queue.put(worms[0])
             self.worms_queue.put(worms[1])
@@ -50,49 +41,52 @@ class Game:
         self.game_map: MapElement = MapElement(
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
         )
+
         # Camera option
         self.camera_position = Vector2(0, 0)
         self.zoom_level = 1.0
         self.initial_zoom_level = 1.0
-
-
 
     def main(self):
         self.running = True
         while self.running:
             self._handle_events()
             self.update()
-
         pygame.quit()
 
     def update(self):
-        self.camera_position.x = self.current_worm.rect.centerx - g.SCREEN_WIDTH / 2
-        self.camera_position.y = self.current_worm.rect.centery - g.SCREEN_HEIGHT / 2
+        dead_zone_left = g.SCREEN_WIDTH / 4
+        dead_zone_right = 3 * (g.SCREEN_WIDTH / 4)
+
+        extended_boundary_left = -475
+        extended_boundary_right = g.SCREEN_WIDTH + 475 - (g.SCREEN_WIDTH / self.zoom_level)
+        if self.current_worm.rect.centerx < dead_zone_left:
+            desired_camera_x_position = self.current_worm.rect.centerx - g.SCREEN_WIDTH / 4
+        elif self.current_worm.rect.centerx > dead_zone_right:
+            desired_camera_x_position = self.current_worm.rect.centerx - (g.SCREEN_WIDTH / 4) * 3
+        else:
+            desired_camera_x_position = self.camera_position.x
+        self.camera_position.x = max(extended_boundary_left, min(desired_camera_x_position, extended_boundary_right))
+        # Fix the camera's y position as before
+        self.camera_position.y = max(0, 0)  # Adjust as needed
         self.screen.fill(color=Color(255, 243, 230))
-
         self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
-
         self.worms_group.update()
-        self.draw_sprites_with_camera_and_zoom(self.worms_group,self.screen)
+        self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
         self.projectiles.update()
-        self.draw_sprites_with_camera_and_zoom(self.projectiles,self.screen)
+        self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
 
         if self.current_projectile and self.current_projectile.charging:
-            self.current_projectile.draw_charge(self.screen)
+            self.current_projectile.draw_charge(self.screen, self.camera_position, self.zoom_level)
 
-        # Window refresh
         pygame.display.flip()
 
     def draw_sprites_with_camera_and_zoom(self, group, surface):
         for sprite in group:
-            # Adjust position for camera and scale for zoom
             adjusted_pos = (sprite.rect.topleft - self.camera_position) * self.zoom_level
-            # Scale sprite image
             scaled_size = (int(sprite.rect.width * self.zoom_level), int(sprite.rect.height * self.zoom_level))
             scaled_image = pygame.transform.scale(sprite.image, scaled_size)
-            # Calculate new blit position
-            new_blit_position = adjusted_pos
-            surface.blit(scaled_image, new_blit_position)
+            surface.blit(scaled_image, adjusted_pos)
 
     def _handle_events(self):
         for event in pygame.event.get():
@@ -114,8 +108,8 @@ class Game:
                         self.current_worm = self.worms_queue.get()
                         self.worms_queue.put(self.current_worm)
                     case pygame.K_r:
-                        self.game_map = MapElement(
-                            start_x=0, start_y=720, width=1080, height_diff=100
+                        self.game_map: MapElement = MapElement(
+                            start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
                         )
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Zoom in and out with mouse wheel
@@ -130,12 +124,25 @@ class Game:
                         self.current_worm.stop_moving()
 
             # Mouse events
+            # Inside the _handle_events method where MOUSEBUTTONDOWN event is handled
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == g.MOUSE_LEFT_CLICK:
                     if not self.current_projectile:
-                        self.current_projectile = Projectile(
-                            self.current_worm.rect.center, pygame.mouse.get_pos()
+                        # Get the current mouse position in screen coordinates
+                        mouse_screen_pos = pygame.mouse.get_pos()
+
+                        # Correctly translate screen position to game world position for the target,
+                        # accounting for the camera position and zoom level.
+                        mouse_game_world_pos = Vector2(
+                            (mouse_screen_pos[0] / self.zoom_level) + self.camera_position.x,
+                            (mouse_screen_pos[1] / self.zoom_level) + self.camera_position.y
                         )
+
+                        # Use the worm's position directly for the projectile's start position.
+                        # The worm's rect.center is already in game world coordinates and does not require adjustment.
+                        start_pos = self.current_worm.rect.center
+
+                        self.current_projectile = Projectile(start_pos, mouse_game_world_pos)
                         self.current_projectile.start_charging()
 
             if event.type == pygame.MOUSEBUTTONUP:
@@ -146,7 +153,7 @@ class Game:
 
     @staticmethod
     def _generate_starting_worms(
-        player_1_start_position: Vector2, player_2_start_position: Vector2
+            player_1_start_position: Vector2, player_2_start_position: Vector2
     ) -> tuple[Group, Group]:
         player_1_worms: Group[Worm] = Group(
             [
@@ -161,7 +168,6 @@ class Game:
             ]
         )
         return player_1_worms, player_2_worms
-
 
 
 if __name__ == "__main__":
