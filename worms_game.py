@@ -133,9 +133,9 @@ class Game:
                         self.current_worm.rect.center, pygame.mouse.get_pos()
                     )
                     self.current_projectile.start_charging()
+                    self.projectiles.add(self.current_projectile)
             if event.type == pygame.MOUSEBUTTONUP and self.current_projectile:
                 self.current_projectile.stop_charging()
-                self.projectiles.add(self.current_projectile)
                 self.current_projectile = None
 
     def change_turn(self):

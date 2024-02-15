@@ -4,7 +4,7 @@ from pygame import Surface, Vector2
 
 
 class Timer:
-    def __init__(self, duration: int) -> None:
+    def __init__(self, duration: int | None = None) -> None:
         self.duration: int = duration
         self.elapsed_seconds: float = 0
         self.paused: bool = True
@@ -19,7 +19,10 @@ class Timer:
         self.start_tick = pygame.time.get_ticks()
 
     def get_countdown(self) -> int:
-        return int(self.duration - self.elapsed_seconds)
+        return int(self.duration - self.elapsed_seconds) if self.duration else 0
+
+    def get_seconds(self) -> float:
+        return self.elapsed_seconds
 
     def update(self) -> None:
         if not self.paused:
