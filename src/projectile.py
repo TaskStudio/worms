@@ -2,8 +2,10 @@ import math
 
 import pygame
 from pygame import Color, Surface
+from pygame.sprite import Group
 
 import src.globals as g
+from src.worm import Worm
 
 
 class Projectile(pygame.sprite.Sprite):
@@ -27,7 +29,7 @@ class Projectile(pygame.sprite.Sprite):
         speed_pixels = speed * self.scale
         self.velocity.x = math.cos(angle) * speed_pixels
         self.velocity.y = (
-                -math.sin(angle) * speed_pixels
+            -math.sin(angle) * speed_pixels
         )  # Négatif car l'axe Y est inversé dans Pygame
 
     def start_charging(self):
@@ -46,7 +48,7 @@ class Projectile(pygame.sprite.Sprite):
         angle = math.atan2(
             -(self.target_pos.y - self.start_pos.y),
             self.target_pos.x - self.start_pos.x,
-            )  # Angle ajusté
+        )  # Angle ajusté
         self.calculate_initial_velocity(angle, self.speed)
         self.launch_time = pygame.time.get_ticks()
         self.charging = False
@@ -55,12 +57,12 @@ class Projectile(pygame.sprite.Sprite):
     def update(self):
         if self.launched:
             time_elapsed = (
-                                   pygame.time.get_ticks() - self.launch_time
-                           ) / 1000.0  # Convertir en secondes
+                pygame.time.get_ticks() - self.launch_time
+            ) / 1000.0  # Convertir en secondes
             # Mise à jour de la position avec la formule de la physique
             displacement_x = self.velocity.x * time_elapsed
             displacement_y = (
-                    self.velocity.y * time_elapsed + 0.5 * self.gravity * time_elapsed**2
+                self.velocity.y * time_elapsed + 0.5 * self.gravity * time_elapsed**2
             )
             self.rect.x = self.start_pos.x + displacement_x
             self.rect.y = self.start_pos.y + displacement_y
@@ -68,6 +70,15 @@ class Projectile(pygame.sprite.Sprite):
     def draw(self, screen: Surface):
         if self.charging:
             self._draw_charge(screen)
+
+    def check_collision(self, worms_group: Group, *, current_worm: Worm):
+        if self.launched:
+            hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
+            for hit_worm in hit_worms:
+                if hit_worm != current_worm:
+                    worms_group.remove(hit_worm)
+                    self.kill()
+                    break
 
     def _draw_charge(self, screen):
         charge_duration = pygame.time.get_ticks() - self.charging_start_time
