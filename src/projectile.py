@@ -1,11 +1,10 @@
 import math
+from typing import Optional
 
 import pygame
-from pygame import Color, Surface
-from pygame.sprite import Group
+from pygame import Color
 
 import src.globals as g
-from src.worm import Worm
 
 
 class Projectile(pygame.sprite.Sprite):
@@ -28,9 +27,7 @@ class Projectile(pygame.sprite.Sprite):
         # Convertir la vitesse en pixels/s, ajustée par l'échelle
         speed_pixels = speed * self.scale
         self.velocity.x = math.cos(angle) * speed_pixels
-        self.velocity.y = (
-            -math.sin(angle) * speed_pixels
-        )  # Négatif car l'axe Y est inversé dans Pygame
+        self.velocity.y = -math.sin(angle) * speed_pixels  # Négatif car l'axe Y est inversé dans Pygame
 
     def start_charging(self):
         self.charging = True
@@ -45,10 +42,8 @@ class Projectile(pygame.sprite.Sprite):
         min_speed = 1  # m/s
         max_speed = 30  # m/s
         self.speed = min_speed + (max_speed - min_speed) * normalized_charge
-        angle = math.atan2(
-            -(self.target_pos.y - self.start_pos.y),
-            self.target_pos.x - self.start_pos.x,
-        )  # Angle ajusté
+        angle = math.atan2(-(self.target_pos.y - self.start_pos.y),
+                           self.target_pos.x - self.start_pos.x)  # Angle ajusté
         self.calculate_initial_velocity(angle, self.speed)
         self.launch_time = pygame.time.get_ticks()
         self.charging = False
@@ -56,40 +51,24 @@ class Projectile(pygame.sprite.Sprite):
 
     def update(self):
         if self.launched:
-            time_elapsed = (
-                pygame.time.get_ticks() - self.launch_time
-            ) / 1000.0  # Convertir en secondes
+            time_elapsed = (pygame.time.get_ticks() - self.launch_time) / 1000.0  # Convertir en secondes
             # Mise à jour de la position avec la formule de la physique
             displacement_x = self.velocity.x * time_elapsed
-            displacement_y = (
-                self.velocity.y * time_elapsed + 0.5 * self.gravity * time_elapsed**2
-            )
+            displacement_y = self.velocity.y * time_elapsed + 0.5 * self.gravity * time_elapsed ** 2
             self.rect.x = self.start_pos.x + displacement_x
             self.rect.y = self.start_pos.y + displacement_y
 
-    def draw(self, screen: Surface):
+    def draw_charge(self, screen):
         if self.charging:
-            self._draw_charge(screen)
+            charge_duration = pygame.time.get_ticks() - self.charging_start_time
+            normalized_charge = min(charge_duration / g.MAX_CHARGE_DURATION, 1)
 
-    def check_collision(self, worms_group: Group, *, current_worm: Worm):
-        if self.launched:
-            hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
-            for hit_worm in hit_worms:
-                if hit_worm != current_worm:
-                    worms_group.remove(hit_worm)
-                    self.kill()
-                    break
+            charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
+            charge_angle = normalized_charge * 360
 
-    def _draw_charge(self, screen):
-        charge_duration = pygame.time.get_ticks() - self.charging_start_time
-        normalized_charge = min(charge_duration / g.MAX_CHARGE_DURATION, 1)
-
-        charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
-        charge_angle = normalized_charge * 360
-
-        charge_rect = pygame.Rect(
-            self.rect.centerx + 20, self.rect.centery - 70, 50, 50
-        )
-        pygame.draw.arc(
-            screen, charge_color, charge_rect, 0, charge_angle * (math.pi / 180), 5
-        )
+            charge_rect = pygame.Rect(
+                self.rect.centerx + 20, self.rect.centery - 70, 50, 50
+            )
+            pygame.draw.arc(
+                screen, charge_color, charge_rect, 0, charge_angle * (math.pi / 180), 5
+            )

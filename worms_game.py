@@ -12,36 +12,6 @@ from src.worm import Worm
 
 
 class Game:
-    """
-    Main class for the game.
-
-    ...
-
-    Attributes
-    ----------
-    screen : Surface
-        The game window.
-    running : bool
-        The game loop state.
-
-    player_1_worms, player_2_worms : Group
-        The worms for each player.
-    worms_group : Group
-        A group containing all the worms, used for game logic and rendering.
-    worms_queue : Queue
-        A queue containing all the worms, used for turn management.
-    current_worm : Worm
-        The worm currently playing.
-
-    projectiles : Group
-        A group containing all the projectiles.
-    current_projectile : Optional[Projectile]
-        The projectile currently being charged.
-
-    game_map : MapElement
-        The main map element.
-    """
-
     def __init__(self):
         # Pygame setup
         pygame.init()
@@ -60,9 +30,11 @@ class Game:
         )
         self.worms_group: Group[Worm] = Group(
             [self.player_1_worms, self.player_2_worms]
-        )
+        )  # Used for game logic and rendering
 
-        self.worms_queue: Queue[Worm] = Queue(maxsize=len(self.worms_group))
+        self.worms_queue: Queue[Worm] = Queue(
+            maxsize=len(self.worms_group)
+        )  # Used for turn-based logic
         for worms in zip(self.player_1_worms, self.player_2_worms):
             self.worms_queue.put(worms[0])
             self.worms_queue.put(worms[1])
@@ -92,16 +64,25 @@ class Game:
 
         self.game_map.draw(self.screen)
 
+        # Gestion des collisions entre les projectiles et les worms
+        for projectile in self.projectiles:
+            # Détecter les worms touchés par le projectile
+            hit_worms = pygame.sprite.spritecollide(projectile, self.worms_group, False)
+            for hit_worm in hit_worms:
+                # On vérifie que le worm touché n'est pas le worm courant (celui qui tire)
+                if hit_worm != self.current_worm:
+                    self.worms_group.remove(hit_worm)
+                    projectile.kill()
+                    break
+
         self.worms_group.update()
         self.worms_group.draw(self.screen)
 
-        if self.current_projectile:
-            self.current_projectile.draw(self.screen)
-
-        for projectile in self.projectiles:
-            projectile.check_collision(self.worms_group, current_worm=self.current_worm)
         self.projectiles.update()
         self.projectiles.draw(self.screen)
+
+        if self.current_projectile and self.current_projectile.charging:
+            self.current_projectile.draw_charge(self.screen)
 
         # Window refresh
         pygame.display.flip()
