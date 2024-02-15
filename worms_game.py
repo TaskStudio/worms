@@ -51,6 +51,7 @@ class Game:
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
         )
 
+
     def main(self):
         self.running = True
         while self.running:
@@ -64,11 +65,25 @@ class Game:
 
         self.game_map.draw(self.screen)
 
+        # Gestion des collisions entre les projectiles et les worms
+        for projectile in self.projectiles:
+            # Détecter les worms touchés par le projectile
+            hit_worms = pygame.sprite.spritecollide(projectile, self.worms_group, False)
+            for hit_worm in hit_worms:
+                # On vérifie que le worm touché n'est pas le worm courant (celui qui tire)
+                if hit_worm != self.current_worm:
+                    self.worms_group.remove(hit_worm)
+                    projectile.kill()
+                    break
+
         self.worms_group.update()
         self.worms_group.draw(self.screen)
 
-        self.projectiles.update(self.screen)
+        self.projectiles.update()
         self.projectiles.draw(self.screen)
+
+        if self.current_projectile and self.current_projectile.charging:
+            self.current_projectile.draw_charge(self.screen)
 
         # Window refresh
         pygame.display.flip()
@@ -131,6 +146,7 @@ class Game:
             ]
         )
         return player_1_worms, player_2_worms
+
 
 
 if __name__ == "__main__":
