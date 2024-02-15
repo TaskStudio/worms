@@ -51,7 +51,6 @@ class Game:
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
         )
 
-
     def main(self):
         self.running = True
         while self.running:
@@ -104,9 +103,7 @@ class Game:
                     case pygame.K_RIGHT:
                         self.current_worm.move_right()
                     case pygame.K_SPACE:
-                        self.current_worm.stop_moving()
-                        self.current_worm = self.worms_queue.get()
-                        self.worms_queue.put(self.current_worm)
+                        self.change_turn()
                     case pygame.K_r:
                         self.game_map = MapElement(
                             start_x=0, start_y=720, width=1080, height_diff=100
@@ -129,6 +126,19 @@ class Game:
                 self.projectiles.add(self.current_projectile)
                 self.current_projectile = None
 
+    def change_turn(self):
+        self.current_worm.stop_moving()
+
+        for _ in range(self.worms_queue.qsize()):
+            worm = self.worms_queue.get()
+            if worm.is_dead():  # If the worm is in the queue and dead, we remove it
+                worm.kill()
+            else:
+                self.worms_queue.put(worm)
+
+        self.current_worm = self.worms_queue.get()
+        self.worms_queue.put(self.current_worm)
+
     @staticmethod
     def _generate_starting_worms(
         player_1_start_position: Vector2, player_2_start_position: Vector2
@@ -146,7 +156,6 @@ class Game:
             ]
         )
         return player_1_worms, player_2_worms
-
 
 
 if __name__ == "__main__":
