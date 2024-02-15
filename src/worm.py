@@ -20,6 +20,9 @@ class Worm(Sprite):
         self.velocity: Vector2 = Vector2(0, 0)
         self.speed: float = 0.5
 
+        self.hp: int = 100
+        self.max_hp: int = 100
+
     def move_right(self) -> None:
         self.velocity.x = 1
 
@@ -28,6 +31,9 @@ class Worm(Sprite):
 
     def stop_moving(self) -> None:
         self.velocity.x = 0
+
+    def is_dead(self) -> bool:
+        return self.hp <= 0
 
     def update(self) -> None:
         self.position += self.velocity * self.speed
