@@ -9,6 +9,8 @@ import src.globals as g
 from src.map import MapElement
 from src.projectile import Projectile
 from src.worm import Worm
+from src.weapons import Grenade, Rocket
+from src.forces import Forces
 
 
 class Game:
@@ -22,6 +24,9 @@ class Game:
         )
 
         self.running: bool = False
+
+        # Forces setup
+        self.wind = Forces.generate_wind()
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
@@ -51,6 +56,9 @@ class Game:
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
         )
 
+        self.current_weapon = 'grenade'  # 'grenade' ou 'rocket'
+        self.weapon_message = "Weapon: Grenade"
+
 
     def main(self):
         self.running = True
@@ -65,14 +73,17 @@ class Game:
 
         self.game_map.draw(self.screen)
 
+        Forces.draw_wind(self.screen, self.wind)
+        Forces.draw_wind_arrow(self.screen, self.wind, (self.screen.get_width() - 50, 50))
+
         # Gestion des collisions entre les projectiles et les worms
         for projectile in self.projectiles:
-            # Détecter les worms touchés par le projectile
+            # Utilise spritecollide pour obtenir la liste des worms touchés
             hit_worms = pygame.sprite.spritecollide(projectile, self.worms_group, False)
             for hit_worm in hit_worms:
-                # On vérifie que le worm touché n'est pas le worm courant (celui qui tire)
+                # Vérifie que le worm touché n'est pas le worm qui tire
                 if hit_worm != self.current_worm:
-                    self.worms_group.remove(hit_worm)
+                    hit_worm.kill()
                     projectile.kill()
                     break
 
@@ -84,6 +95,11 @@ class Game:
 
         if self.current_projectile and self.current_projectile.charging:
             self.current_projectile.draw_charge(self.screen)
+
+        # Afficher le message de l'arme actuelle
+        font = pygame.font.Font(None, 36)
+        text = font.render(self.weapon_message, True, (10, 10, 10))
+        self.screen.blit(text, (10, 10))
 
         # Window refresh
         pygame.display.flip()
@@ -117,13 +133,29 @@ class Game:
                     case pygame.K_LEFT | pygame.K_RIGHT:
                         self.current_worm.stop_moving()
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_g:
+                    self.current_weapon = 'grenade'
+                    self.weapon_message = "Weapon: Grenade"
+                elif event.key == pygame.K_c:
+                    self.current_weapon = 'rocket'
+                    self.weapon_message = "Weapon: Rocket"
+
+
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
+                while self.current_worm not in self.worms_group:
+                    self.current_worm = self.worms_queue.get()
+                    self.worms_queue.put(self.current_worm)
                 if not self.current_projectile:
-                    self.current_projectile = Projectile(
-                        self.current_worm.rect.center, pygame.mouse.get_pos()
-                    )
+                    target_pos = pygame.mouse.get_pos()
+                    start_pos = self.current_worm.rect.center
+                    if self.current_weapon == 'grenade':
+                        self.current_projectile = Grenade(start_pos, target_pos)
+                    elif self.current_weapon == 'rocket':
+                        self.current_projectile = Rocket(start_pos, target_pos, wind=self.wind)
                     self.current_projectile.start_charging()
+
             if event.type == pygame.MOUSEBUTTONUP and self.current_projectile:
                 self.current_projectile.stop_charging()
                 self.projectiles.add(self.current_projectile)
