@@ -2,8 +2,10 @@ import math
 
 import pygame
 from pygame import Color, Surface
+from pygame.sprite import Group
 
 import src.globals as g
+from src.worm import Worm
 
 
 class Projectile(pygame.sprite.Sprite):
@@ -68,6 +70,15 @@ class Projectile(pygame.sprite.Sprite):
     def draw(self, screen: Surface):
         if self.charging:
             self._draw_charge(screen)
+
+    def check_collision(self, worms_group: Group, *, current_worm: Worm):
+        if self.launched:
+            hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
+            for hit_worm in hit_worms:
+                if hit_worm != current_worm:
+                    worms_group.remove(hit_worm)
+                    self.kill()
+                    break
 
     def _draw_charge(self, screen):
         charge_duration = pygame.time.get_ticks() - self.charging_start_time
