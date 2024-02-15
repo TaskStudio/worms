@@ -12,6 +12,36 @@ from src.worm import Worm
 
 
 class Game:
+    """
+    Main class for the game.
+
+    ...
+
+    Attributes
+    ----------
+    screen : Surface
+        The game window.
+    running : bool
+        The game loop state.
+
+    player_1_worms, player_2_worms : Group
+        The worms for each player.
+    worms_group : Group
+        A group containing all the worms, used for game logic and rendering.
+    worms_queue : Queue
+        A queue containing all the worms, used for turn management.
+    current_worm : Worm
+        The worm currently playing.
+
+    projectiles : Group
+        A group containing all the projectiles.
+    current_projectile : Optional[Projectile]
+        The projectile currently being charged.
+
+    game_map : MapElement
+        The main map element.
+    """
+
     def __init__(self):
         # Pygame setup
         pygame.init()
@@ -30,11 +60,9 @@ class Game:
         )
         self.worms_group: Group[Worm] = Group(
             [self.player_1_worms, self.player_2_worms]
-        )  # Used for game logic and rendering
+        )
 
-        self.worms_queue: Queue[Worm] = Queue(
-            maxsize=len(self.worms_group)
-        )  # Used for turn-based logic
+        self.worms_queue: Queue[Worm] = Queue(maxsize=len(self.worms_group))
         for worms in zip(self.player_1_worms, self.player_2_worms):
             self.worms_queue.put(worms[0])
             self.worms_queue.put(worms[1])
@@ -78,11 +106,10 @@ class Game:
         self.worms_group.update()
         self.worms_group.draw(self.screen)
 
+        self.current_projectile.draw(self.screen)
+
         self.projectiles.update()
         self.projectiles.draw(self.screen)
-
-        if self.current_projectile and self.current_projectile.charging:
-            self.current_projectile.draw_charge(self.screen)
 
         # Window refresh
         pygame.display.flip()
@@ -141,7 +168,7 @@ class Game:
 
     @staticmethod
     def _generate_starting_worms(
-        player_1_start_position: Vector2, player_2_start_position: Vector2
+            player_1_start_position: Vector2, player_2_start_position: Vector2
     ) -> tuple[Group, Group]:
         player_1_worms: Group[Worm] = Group(
             [
