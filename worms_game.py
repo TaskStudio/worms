@@ -118,7 +118,7 @@ class Game:
 
         self.player_timer.update()
         self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
-        if self.player_timer.get_countdown() <= 0:
+        if self.player_timer.is_finished():
             self.change_turn()
 
         # Window refresh
@@ -175,6 +175,9 @@ class Game:
 
         self.current_worm = self.worms_queue.get()
         self.worms_queue.put(self.current_worm)
+
+        self.player_timer.reset()
+        self.player_timer.start()
 
     @staticmethod
     def _generate_starting_worms(
