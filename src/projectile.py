@@ -17,6 +17,7 @@ class Projectile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=start_pos)
         self.start_pos = pygame.math.Vector2(start_pos)
         self.target_pos = pygame.math.Vector2(target_pos)
+        self.charging_start_time = None
         self.velocity = pygame.math.Vector2(0, 0)
         self.charging = False
         self.launched = False
@@ -72,9 +73,9 @@ class Projectile(pygame.sprite.Sprite):
             self.rect.x = self.start_pos.x + displacement_x
             self.rect.y = self.start_pos.y + displacement_y
 
-    def draw(self, screen: Surface):
+    def draw(self, screen: Surface, camera_position, zoom_level):
         if self.charging:
-            self._draw_charge(screen)
+            self._draw_charge(screen, camera_position, zoom_level)
 
     def check_collision(self, worms_group: Group, *, current_worm: Worm):
         if self.launched:
@@ -85,17 +86,18 @@ class Projectile(pygame.sprite.Sprite):
                     self.kill()
                     break
 
-    def _draw_charge(self, screen):
-        normalized_charge = min(
-            self.charge_timer.get_seconds() / g.MAX_CHARGE_DURATION, 1
-        )
+    def _draw_charge(self, screen, camera_position, zoom_level):
+        if self.charging:
+            normalized_charge = min(
+                self.charge_timer.get_seconds() / g.MAX_CHARGE_DURATION, 1)
 
-        charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
-        charge_angle = normalized_charge * 360
+            charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
 
-        charge_rect = pygame.Rect(
-            self.rect.centerx + 20, self.rect.centery - 70, 50, 50
-        )
-        pygame.draw.arc(
-            screen, charge_color, charge_rect, 0, charge_angle * (math.pi / 180), 5
-        )
+            # Adjust charge indicator position based on camera position and zoom
+            adjusted_center = (self.rect.center - camera_position) * zoom_level
+            charge_rect = pygame.Rect(
+                adjusted_center[0] + 20, adjusted_center[1] - 70, 50 * zoom_level, 50 * zoom_level
+            )
+            pygame.draw.arc(
+                screen, charge_color, charge_rect, 0, math.pi * 2 * normalized_charge, int(5 * zoom_level)
+            )

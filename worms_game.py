@@ -64,8 +64,8 @@ class Game:
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
-            Vector2(100, g.SCREEN_HEIGHT),
-            Vector2(g.SCREEN_WIDTH - 100, g.SCREEN_HEIGHT),
+            Vector2(100, g.SCREEN_HEIGHT - 50),  # Adjust starting y to place worms at the bottom
+            Vector2(g.SCREEN_WIDTH - 100, g.SCREEN_HEIGHT - 50),
         )
         self.worms_group: Group[Worm] = Group(
             [self.player_1_worms, self.player_2_worms]
@@ -88,6 +88,11 @@ class Game:
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
         )
 
+        # Camera option
+        self.camera_position = Vector2(0, 0)
+        self.zoom_level = 1.0
+        self.initial_zoom_level = 1.0
+
     def main(self):
         self.running = True
         self.player_timer.start()
@@ -98,20 +103,34 @@ class Game:
         pygame.quit()
 
     def update(self):
+        dead_zone_left = g.SCREEN_WIDTH / 4
+        dead_zone_right = 3 * (g.SCREEN_WIDTH / 4)
+
+        extended_boundary_left = -475
+        extended_boundary_right = g.SCREEN_WIDTH + 475 - (g.SCREEN_WIDTH / self.zoom_level)
+        if self.current_worm.rect.centerx < dead_zone_left:
+            desired_camera_x_position = self.current_worm.rect.centerx - g.SCREEN_WIDTH / 4
+        elif self.current_worm.rect.centerx > dead_zone_right:
+            desired_camera_x_position = self.current_worm.rect.centerx - (g.SCREEN_WIDTH / 4) * 3
+        else:
+            desired_camera_x_position = self.camera_position.x
+        self.camera_position.x = max(extended_boundary_left, min(desired_camera_x_position, extended_boundary_right))
+        # Fix the camera's y position as before
+        self.camera_position.y = max(0, 0)  # Adjust as needed
         self.screen.fill(color=Color(255, 243, 230))
 
-        self.game_map.draw(self.screen)
+        self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
 
         self.worms_group.update()
-        self.worms_group.draw(self.screen)
 
         if self.current_projectile:
-            self.current_projectile.draw(self.screen)
+            self.current_projectile.draw(self.screen, self.camera_position, self.zoom_level)
 
         for projectile in self.projectiles:
             projectile.check_collision(self.worms_group, current_worm=self.current_worm)
+        self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
         self.projectiles.update()
-        self.projectiles.draw(self.screen)
+        self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
 
         # Clock and window refresh
         self.game_clock.tick(g.FPS)
@@ -123,6 +142,13 @@ class Game:
 
         # Window refresh
         pygame.display.flip()
+
+    def draw_sprites_with_camera_and_zoom(self, group, surface):
+        for sprite in group:
+            adjusted_pos = (sprite.rect.topleft - self.camera_position) * self.zoom_level
+            scaled_size = (int(sprite.rect.width * self.zoom_level), int(sprite.rect.height * self.zoom_level))
+            scaled_image = pygame.transform.scale(sprite.image, scaled_size)
+            surface.blit(scaled_image, adjusted_pos)
 
     def _handle_events(self):
         for event in pygame.event.get():
@@ -142,9 +168,15 @@ class Game:
                     case pygame.K_SPACE:
                         self.change_turn()
                     case pygame.K_r:
-                        self.game_map = MapElement(
-                            start_x=0, start_y=720, width=1080, height_diff=100
+                        self.game_map: MapElement = MapElement(
+                            start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
                         )
+                        # Mouse wheel events for zoom
+            elif event.type == pygame.MOUSEWHEEL:
+                if event.y > 0:  # Scroll up to zoom in
+                    self.zoom_level = min(self.zoom_level + 0.1, self.initial_zoom_level)
+                elif event.y < 0:  # Scroll down to zoom out
+                    self.zoom_level = max(self.zoom_level - 0.1, 0.5)  # Adjust the minimum zoom level as needed
 
             if event.type == pygame.KEYUP:
                 match event.key:
@@ -181,7 +213,7 @@ class Game:
 
     @staticmethod
     def _generate_starting_worms(
-        player_1_start_position: Vector2, player_2_start_position: Vector2
+            player_1_start_position: Vector2, player_2_start_position: Vector2
     ) -> tuple[Group, Group]:
         player_1_worms: Group[Worm] = Group(
             [
