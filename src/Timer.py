@@ -4,6 +4,14 @@ from pygame import Surface, Vector2
 
 
 class Timer:
+    """
+    A simple timer class.
+
+    !!! ATTENTION !!!
+    This timer is not autonomous, if you want to get the time elapsed since its start correctly,
+    you need to call the update method on it before getting the time. A simple solution is to call
+    the update method of this class in every update methods of your classes using a Timer instance.
+    """
     def __init__(self, duration: int | None = None) -> None:
         self.duration: int = duration
         self.elapsed_seconds: float = 0

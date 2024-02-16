@@ -25,6 +25,11 @@ class Game:
         The game window.
     running : bool
         The game loop state.
+    game_clock : Clock
+        The general game clock.
+
+    player_timer : Timer
+        The timer for the current player's turn. When it reaches 0, the turn changes.
 
     player_1_worms, player_2_worms : Group
         The worms for each player.
@@ -52,8 +57,8 @@ class Game:
         self.screen: Surface = pygame.display.set_mode(
             (g.SCREEN_WIDTH, g.SCREEN_HEIGHT)
         )
-        self.game_clock: Clock = Clock()
         self.running: bool = False
+        self.game_clock: Clock = Clock()
 
         self.player_timer = Timer(g.PLAYER_TURN_DURATION)
 
