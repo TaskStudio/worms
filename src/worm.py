@@ -21,6 +21,9 @@ class Worm(Sprite):
         self.velocity = Vector2(0, 0)
         self.speed = 0.2
 
+        self.hp: int = 100
+        self.max_hp: int = 100
+
     def move_right(self) -> None:
         self.velocity.x = 1
 
@@ -30,8 +33,9 @@ class Worm(Sprite):
     def stop_moving(self) -> None:
         self.velocity.x = 0
 
+    def is_dead(self) -> bool:
+        return self.hp <= 0
+
     def update(self, *args, **kwargs):
-        # Update the position based on velocity and speed
         self.position += self.velocity * self.speed
-        # Update the rect attribute to match the new position
         self.rect.center = self.position

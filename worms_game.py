@@ -4,24 +4,63 @@ from typing import Optional
 import pygame
 from pygame import Surface, Color, Vector2
 from pygame.sprite import Group
+from pygame.time import Clock
 
 import src.globals as g
+from src.Timer import Timer
 from src.map import MapElement
 from src.projectile import Projectile
 from src.worm import Worm
 
 
 class Game:
+    """
+    Main class for the game.
+
+    ...
+
+    Attributes
+    ----------
+    screen : Surface
+        The game window.
+    running : bool
+        The game loop state.
+    game_clock : Clock
+        The general game clock.
+
+    player_timer : Timer
+        The timer for the current player's turn. When it reaches 0, the turn changes.
+
+    player_1_worms, player_2_worms : Group
+        The worms for each player.
+    worms_group : Group
+        A group containing all the worms, used for game logic and rendering.
+    worms_queue : Queue
+        A queue containing all the worms, used for turn management.
+    current_worm : Worm
+        The worm currently playing.
+
+    projectiles : Group
+        A group containing all the projectiles.
+    current_projectile : Optional[Projectile]
+        The projectile currently being charged.
+
+    game_map : MapElement
+        The main map element.
+    """
+
     def __init__(self):
         # Pygame setup
         pygame.init()
-
         pygame.display.set_caption("WORMS")
+
         self.screen: Surface = pygame.display.set_mode(
             (g.SCREEN_WIDTH, g.SCREEN_HEIGHT)
         )
-
         self.running: bool = False
+        self.game_clock: Clock = Clock()
+
+        self.player_timer = Timer(g.PLAYER_TURN_DURATION)
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
@@ -30,11 +69,9 @@ class Game:
         )
         self.worms_group: Group[Worm] = Group(
             [self.player_1_worms, self.player_2_worms]
-        )  # Used for game logic and rendering
+        )
 
-        self.worms_queue: Queue[Worm] = Queue(
-            maxsize=len(self.worms_group)
-        )  # Used for turn-based logic
+        self.worms_queue: Queue[Worm] = Queue(maxsize=len(self.worms_group))
         for worms in zip(self.player_1_worms, self.player_2_worms):
             self.worms_queue.put(worms[0])
             self.worms_queue.put(worms[1])
@@ -58,6 +95,7 @@ class Game:
 
     def main(self):
         self.running = True
+        self.player_timer.start()
         while self.running:
             self._handle_events()
             self.update()
@@ -83,24 +121,24 @@ class Game:
 
         self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
 
-        # Gestion des collisions entre les projectiles et les worms
-        for projectile in self.projectiles:
-            # Détecter les worms touchés par le projectile
-            hit_worms = pygame.sprite.spritecollide(projectile, self.worms_group, False)
-            for hit_worm in hit_worms:
-                # On vérifie que le worm touché n'est pas le worm courant (celui qui tire)
-                if hit_worm != self.current_worm:
-                    self.worms_group.remove(hit_worm)
-                    projectile.kill()
-                    break
-        self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
         self.worms_group.update()
+
+        if self.current_projectile:
+            self.current_projectile.draw(self.screen)
+
+        for projectile in self.projectiles:
+            projectile.check_collision(self.worms_group, current_worm=self.current_worm)
         self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
         self.projectiles.update()
         self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
 
-        if self.current_projectile and self.current_projectile.charging:
-            self.current_projectile.draw_charge(self.screen, self.camera_position, self.zoom_level)
+        # Clock and window refresh
+        self.game_clock.tick(g.FPS)
+
+        self.player_timer.update()
+        self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
+        if self.player_timer.is_finished():
+            self.change_turn()
 
         # Window refresh
         pygame.display.flip()
@@ -128,9 +166,7 @@ class Game:
                     case pygame.K_RIGHT:
                         self.current_worm.move_right()
                     case pygame.K_SPACE:
-                        self.current_worm.stop_moving()
-                        self.current_worm = self.worms_queue.get()
-                        self.worms_queue.put(self.current_worm)
+                        self.change_turn()
                     case pygame.K_r:
                         self.game_map: MapElement = MapElement(
                             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
@@ -148,32 +184,32 @@ class Game:
                         self.current_worm.stop_moving()
 
             # Mouse events
-            # Inside the _handle_events method where MOUSEBUTTONDOWN event is handled
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == g.MOUSE_LEFT_CLICK:
-                    if not self.current_projectile:
-                        # Get the current mouse position in screen coordinates
-                        mouse_screen_pos = pygame.mouse.get_pos()
-
-                        # Correctly translate screen position to game world position for the target,
-                        # accounting for the camera position and zoom level.
-                        mouse_game_world_pos = Vector2(
-                            (mouse_screen_pos[0] / self.zoom_level) + self.camera_position.x,
-                            (mouse_screen_pos[1] / self.zoom_level) + self.camera_position.y
-                        )
-
-                        # Use the worm's position directly for the projectile's start position.
-                        # The worm's rect.center is already in game world coordinates and does not require adjustment.
-                        start_pos = self.current_worm.rect.center
-
-                        self.current_projectile = Projectile(start_pos, mouse_game_world_pos)
-                        self.current_projectile.start_charging()
-
-            if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == g.MOUSE_LEFT_CLICK and self.current_projectile:
-                    self.current_projectile.stop_charging()
+                if not self.current_projectile:
+                    self.current_projectile = Projectile(
+                        self.current_worm.rect.center, pygame.mouse.get_pos()
+                    )
+                    self.current_projectile.start_charging()
                     self.projectiles.add(self.current_projectile)
-                    self.current_projectile = None
+            if event.type == pygame.MOUSEBUTTONUP and self.current_projectile:
+                self.current_projectile.stop_charging()
+                self.current_projectile = None
+
+    def change_turn(self):
+        self.current_worm.stop_moving()
+
+        for _ in range(self.worms_queue.qsize()):
+            worm = self.worms_queue.get()
+            if worm.is_dead():  # If the worm is in the queue and dead, we remove it
+                worm.kill()
+            else:
+                self.worms_queue.put(worm)
+
+        self.current_worm = self.worms_queue.get()
+        self.worms_queue.put(self.current_worm)
+
+        self.player_timer.reset()
+        self.player_timer.start()
 
     @staticmethod
     def _generate_starting_worms(
