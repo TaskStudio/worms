@@ -73,9 +73,9 @@ class Projectile(pygame.sprite.Sprite):
             self.rect.x = self.start_pos.x + displacement_x
             self.rect.y = self.start_pos.y + displacement_y
 
-    def draw(self, screen: Surface):
+    def draw(self, screen: Surface, camera_position, zoom_level):
         if self.charging:
-            self._draw_charge(screen)
+            self._draw_charge(screen, camera_position, zoom_level)
 
     def check_collision(self, worms_group: Group, *, current_worm: Worm):
         if self.launched:

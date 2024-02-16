@@ -124,7 +124,7 @@ class Game:
         self.worms_group.update()
 
         if self.current_projectile:
-            self.current_projectile.draw(self.screen)
+            self.current_projectile.draw(self.screen, self.camera_position, self.zoom_level)
 
         for projectile in self.projectiles:
             projectile.check_collision(self.worms_group, current_worm=self.current_worm)
