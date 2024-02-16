@@ -4,8 +4,10 @@ from typing import Optional
 import pygame
 from pygame import Surface, Color, Vector2
 from pygame.sprite import Group
+from pygame.time import Clock
 
 import src.globals as g
+from src.Timer import Timer
 from src.map import MapElement
 from src.projectile import Projectile
 from src.worm import Worm
@@ -45,13 +47,15 @@ class Game:
     def __init__(self):
         # Pygame setup
         pygame.init()
-
         pygame.display.set_caption("WORMS")
+
         self.screen: Surface = pygame.display.set_mode(
             (g.SCREEN_WIDTH, g.SCREEN_HEIGHT)
         )
-
+        self.game_clock: Clock = Clock()
         self.running: bool = False
+
+        self.player_timer = Timer(g.PLAYER_TURN_DURATION)
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
@@ -81,6 +85,7 @@ class Game:
 
     def main(self):
         self.running = True
+        self.player_timer.start()
         while self.running:
             self._handle_events()
             self.update()
@@ -102,6 +107,14 @@ class Game:
             projectile.check_collision(self.worms_group, current_worm=self.current_worm)
         self.projectiles.update()
         self.projectiles.draw(self.screen)
+
+        # Clock and window refresh
+        self.game_clock.tick(g.FPS)
+
+        self.player_timer.update()
+        self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
+        if self.player_timer.get_countdown() <= 0:
+            self.change_turn()
 
         # Window refresh
         pygame.display.flip()
@@ -140,9 +153,9 @@ class Game:
                         self.current_worm.rect.center, pygame.mouse.get_pos()
                     )
                     self.current_projectile.start_charging()
+                    self.projectiles.add(self.current_projectile)
             if event.type == pygame.MOUSEBUTTONUP and self.current_projectile:
                 self.current_projectile.stop_charging()
-                self.projectiles.add(self.current_projectile)
                 self.current_projectile = None
 
     def change_turn(self):
