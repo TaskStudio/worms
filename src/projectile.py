@@ -1,9 +1,11 @@
 import math
 
 import pygame
-from pygame import Color
+from pygame import Color, Surface
+from pygame.sprite import Group
 
 import src.globals as g
+from src.worm import Worm
 from src.Timer import Timer
 
 
@@ -70,18 +72,30 @@ class Projectile(pygame.sprite.Sprite):
             self.rect.x = self.start_pos.x + displacement_x
             self.rect.y = self.start_pos.y + displacement_y
 
-    def draw_charge(self, screen):
+    def draw(self, screen: Surface):
         if self.charging:
-            normalized_charge = min(
-                self.charge_timer.get_seconds() / g.MAX_CHARGE_DURATION, 1
-            )
+            self._draw_charge(screen)
 
-            charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
-            charge_angle = normalized_charge * 360
+    def check_collision(self, worms_group: Group, *, current_worm: Worm):
+        if self.launched:
+            hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
+            for hit_worm in hit_worms:
+                if hit_worm != current_worm:
+                    worms_group.remove(hit_worm)
+                    self.kill()
+                    break
 
-            charge_rect = pygame.Rect(
-                self.rect.centerx + 20, self.rect.centery - 70, 50, 50
-            )
-            pygame.draw.arc(
-                screen, charge_color, charge_rect, 0, charge_angle * (math.pi / 180), 5
-            )
+    def _draw_charge(self, screen):
+        normalized_charge = min(
+            self.charge_timer.get_seconds() / g.MAX_CHARGE_DURATION, 1
+        )
+
+        charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
+        charge_angle = normalized_charge * 360
+
+        charge_rect = pygame.Rect(
+            self.rect.centerx + 20, self.rect.centery - 70, 50, 50
+        )
+        pygame.draw.arc(
+            screen, charge_color, charge_rect, 0, charge_angle * (math.pi / 180), 5
+        )
