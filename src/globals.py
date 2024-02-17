@@ -9,3 +9,6 @@ PLAYER_TURN_DURATION = 10
 
 # Projectiles
 MAX_CHARGE_DURATION = 3
+
+# Gravity
+GRAVITY = -2
