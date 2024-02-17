@@ -95,6 +95,7 @@ class Game:
         self.camera_position = Vector2(0, 0)
         self.zoom_level = 1.0
         self.initial_zoom_level = 1.0
+        self.follow_projectile = False
 
     def main(self):
         self.running = True
@@ -129,6 +130,11 @@ class Game:
         )
         # Fix the camera's y position as before
         self.camera_position.y = max(0, 0)  # Adjust as needed
+
+        if self.follow_projectile and len(self.projectiles) > 0:
+            projectile = next(iter(self.projectiles))  # Assuming we follow the first projectile in the group
+            self.camera_position.x = max(extended_boundary_left, min(projectile.rect.centerx - g.SCREEN_WIDTH / 2, extended_boundary_right))
+            self.camera_position.y = max(0, projectile.rect.centery - g.SCREEN_HEIGHT / 2)
 
         self.screen.fill(color=Color(255, 243, 230))
 
@@ -229,6 +235,7 @@ class Game:
                 ):
                     self.current_worm.charge_weapon()
                     self.projectiles.add(self.current_worm.weapon)
+                    self.follow_projectile = True
             if event.type == pygame.MOUSEBUTTONUP:
                 if self.current_worm.is_charging():
                     self.current_worm.release_weapon()
