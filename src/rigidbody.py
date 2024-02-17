@@ -1,12 +1,12 @@
-import pygame
 from pygame import Vector2
-from .globals import GRAVITY
+
+import src.globals as g
 
 
 class Rigidbody:
-    def __init__(self, mass=1, gravity=GRAVITY, position=Vector2(0, 0), velocity=Vector2(0, 0)):
+    def __init__(self, mass=1, position=Vector2(0, 0), velocity=Vector2(0, 0)):
         self.mass = mass
-        self.gravity = gravity
+        self.gravity = g.GRAVITY
         self.position = position
         self.velocity = velocity
         self.forces = Vector2(0, 0)

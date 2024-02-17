@@ -3,8 +3,11 @@ from pygame import Surface
 from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.sprite import Sprite
-from .rigidbody import Rigidbody  # Make sure this import matches your project structure
-from .globals import GRAVITY
+
+import src.globals as g
+from src.rigidbody import (
+    Rigidbody,
+)  # Make sure this import matches your project structure
 
 
 class Worm(Sprite, Rigidbody):
@@ -12,11 +15,11 @@ class Worm(Sprite, Rigidbody):
     Class for the worms the players will control.
     """
 
-    def __init__(self, *, position: tuple[int, int] | Vector2 = (0, 0), mass=1, gravity=GRAVITY) -> None:
+    def __init__(self, *, position: tuple[int, int] | Vector2 = (0, 0)) -> None:
         # Setup for the sprite class
         Sprite.__init__(self)
         # Initialize Rigidbody with mass, gravity, and initial position
-        Rigidbody.__init__(self, mass=mass, gravity=gravity, position=position)
+        Rigidbody.__init__(self, mass=g.WORMS_MASS, position=position)
 
         self.image: Surface = pygame.image.load("src/assets/worm.png")
         self.rect: Rect = self.image.get_rect(center=position)
@@ -27,6 +30,7 @@ class Worm(Sprite, Rigidbody):
         self.current_worm: bool = False
 
         self.is_moving = False
+
     def move_right(self):
         # Apply a force to the right only if not currently moving
         if not self.is_moving:
