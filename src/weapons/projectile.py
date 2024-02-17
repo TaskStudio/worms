@@ -2,13 +2,13 @@ import math
 
 import pygame
 from pygame import Color, Surface, Vector2
-from pygame.sprite import Group
+from pygame.sprite import Group, Sprite
 
 import src.globals as g
 from src.Timer import Timer
 
 
-class Projectile(pygame.sprite.Sprite):
+class Projectile(Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface((5, 5))
