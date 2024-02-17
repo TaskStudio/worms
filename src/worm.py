@@ -15,7 +15,10 @@ class Worm(Sprite):
     def __init__(self, *, position: tuple[int, int] | Vector2 = (0, 0), scale: float = 0.2, name: str = '', player: int = 1,color=(255, 255, 255)) -> None:
         super().__init__()
         original_image: Surface = pygame.image.load("src/assets/worm.png")
-        scaled_size = (int(original_image.get_width() * scale), int(original_image.get_height() * scale))
+        scaled_size = (
+            int(original_image.get_width() * scale),
+            int(original_image.get_height() * scale),
+        )
         self.image: Surface = pygame.transform.scale(original_image, scaled_size)
         self.rect: Rect = self.image.get_rect(center=position)
 
@@ -32,6 +35,7 @@ class Worm(Sprite):
         self.weapon_class: type[Projectile] | None = None
         self.weapon: Projectile | None = None
         self.aim_target: Vector2 | None = None
+        self.weapon_fired: bool = False
 
     def move_right(self) -> None:
         self.velocity.x = 1
@@ -84,6 +88,11 @@ class Worm(Sprite):
     def set_weapon(self, weapon_class: type[Projectile]):
         self.weapon_class = weapon_class
 
+    def reset_weapon(self):
+        self.weapon_fired = False
+        self.weapon = None
+        self.weapon_class = None
+
     def aim(self, target: Vector2):
         self.aim_target = target
 
@@ -94,6 +103,7 @@ class Worm(Sprite):
 
     def release_weapon(self):
         self.weapon.stop_charging()
+        self.weapon_fired = True
 
     def weapon_equipped(self):
         return self.weapon_class is not None
@@ -104,3 +114,5 @@ class Worm(Sprite):
 
         if self.weapon:
             self.weapon.set_position(self.position)
+            if self.weapon.destroyed:
+                self.reset_weapon()

@@ -13,7 +13,7 @@ class Timer:
     the update method of this class in every update methods of your classes using a Timer instance.
     """
     def __init__(self, duration: int | None = None) -> None:
-        self.duration: int = duration
+        self.duration: float = duration
         self.elapsed_seconds: float = 0
         self.paused: bool = True
         self.start_tick = 0
@@ -40,8 +40,10 @@ class Timer:
     def is_finished(self) -> bool:
         return self.end
 
+    def set_duration(self, duration: float) -> None:
+        self.duration = duration
+
     def update(self) -> None:
-        print(self.elapsed_seconds, self.duration, self.paused, self.end)
         if not self.paused:
             self.elapsed_seconds = (pygame.time.get_ticks() - self.start_tick) / 1000
             if self.duration and self.elapsed_seconds >= self.duration:
