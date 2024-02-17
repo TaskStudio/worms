@@ -45,21 +45,38 @@ class Worm(Sprite):
     def is_dead(self) -> bool:
         return self.hp <= 0
 
-
     def draw_info(self, surface, camera_position, zoom_level):
         font = pygame.font.Font(None, int(24 * zoom_level))
         name_text = font.render(f"{self.name}", True, self.color)
-        hp_text = font.render(f"HP: {self.hp}", True, self.color)
 
-        name_text_offset_x = self.rect.width * zoom_level / 2 - name_text.get_width() / 2
-        hp_text_offset_x = self.rect.width * zoom_level / 2 - hp_text.get_width() / 2
-
-        name_text_pos = ((self.rect.topleft - camera_position) * zoom_level) - Vector2(name_text_offset_x,
-                                                                                       30 * zoom_level)
-        hp_text_pos = ((self.rect.topleft - camera_position) * zoom_level) - Vector2(hp_text_offset_x, 50 * zoom_level)
-
+        # Center the name text above the worm
+        name_text_pos_x = (self.rect.centerx - camera_position.x) * zoom_level - name_text.get_width() / 2
+        name_text_pos_y = (
+                                      self.rect.top - camera_position.y) * zoom_level - name_text.get_height() - 10 * zoom_level  # Adjust the offset as needed
+        name_text_pos = Vector2(name_text_pos_x, name_text_pos_y)
         surface.blit(name_text, name_text_pos)
-        surface.blit(hp_text, hp_text_pos)
+
+        # Health bar dimensions and position
+        hp_bar_width = 50 * zoom_level  # Width of the health bar; adjust as needed
+        hp_bar_height = 5 * zoom_level  # Height of the health bar; adjust as needed
+
+        # Center the health bar above the worm
+        hp_bar_pos_x = (self.rect.centerx - camera_position.x) * zoom_level - hp_bar_width / 2
+        hp_bar_pos_y = name_text_pos_y - hp_bar_height - 5 * zoom_level  # Place it above the name text with a small offset
+        hp_bar_position = Vector2(hp_bar_pos_x, hp_bar_pos_y)
+
+        # Calculate health ratio
+        health_ratio = max(self.hp / self.max_hp, 0)
+
+        # Color for the health bar based on the current health ratio
+        health_color = [int(red + (green - red) * health_ratio) for red, green in zip((255, 0, 0), (0, 255, 0))]
+
+        # Draw the health bar background (the "empty" part of the health bar)
+        pygame.draw.rect(surface, (255, 255, 255), (hp_bar_position.x, hp_bar_position.y, hp_bar_width, hp_bar_height))
+
+        # Draw the health part of the health bar
+        pygame.draw.rect(surface, health_color,
+                         (hp_bar_position.x, hp_bar_position.y, hp_bar_width * health_ratio, hp_bar_height))
 
     def is_charging(self):
         return self.weapon.charging if self.weapon else False
