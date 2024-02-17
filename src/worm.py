@@ -34,13 +34,13 @@ class Worm(Sprite, Rigidbody):
     def move_right(self):
         # Apply a force to the right only if not currently moving
         if not self.is_moving:
-            self.add_force(Vector2(self.move_force, 0))
+            self.set_force(Vector2(self.move_force, 0))
             self.is_moving = True
 
     def move_left(self):
         # Apply a force to the left only if not currently moving
         if not self.is_moving:
-            self.add_force(Vector2(-self.move_force, 0))
+            self.set_force(Vector2(-self.move_force, 0))
             self.is_moving = True
 
     def update(self, delta_time):
@@ -58,7 +58,7 @@ class Worm(Sprite, Rigidbody):
     def stop_moving(self):
         # Additional logic to stop the worm, if needed for future functionality
         self.is_moving = False
-        self.velocity.x = 0
+        super().clear_horizontal_forces()
 
     def is_dead(self):
         return self.hp <= 0
