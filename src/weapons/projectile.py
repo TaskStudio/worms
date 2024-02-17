@@ -5,7 +5,7 @@ from pygame import Color, Surface, Vector2
 from pygame.sprite import Group, Sprite
 
 import src.globals as g
-from src.Timer import Timer
+from src.timer import Timer
 
 
 class Projectile(Sprite):
