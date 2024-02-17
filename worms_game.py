@@ -1,5 +1,4 @@
 from queue import Queue
-from typing import Optional
 
 import pygame
 from pygame import Surface, Color, Vector2
@@ -7,7 +6,7 @@ from pygame.sprite import Group
 from pygame.time import Clock
 
 import src.globals as g
-from src.Timer import Timer
+from src.timer import Timer
 from src.map import MapElement
 from src.worm import Worm
 from src.weapons import Grenade, Rocket
@@ -84,6 +83,7 @@ class Game:
         # Projectiles setup
         self.projectiles = pygame.sprite.Group()
         self.weapon_message = "Weapon: None"
+        self.threw = False
 
         # Map setup
         self.game_map: MapElement = MapElement(
@@ -198,12 +198,16 @@ class Game:
 
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.current_worm.weapon_equipped():
+                if self.current_worm.weapon_equipped() and not self.threw:
                     self.current_worm.charge_weapon()
                     self.projectiles.add(self.current_worm.weapon)
             if event.type == pygame.MOUSEBUTTONUP:
-                if self.current_worm.is_charging():
+                if self.current_worm.is_charging() :
                     self.current_worm.release_weapon()
+                    self.threw = True
+                    self.player_timer.set_duration(5)
+                    self.player_timer.reset()
+                    self.player_timer.start()
 
             if event.type == pygame.MOUSEWHEEL:
                 if event.y > 0:  # Scroll up to zoom in
@@ -224,8 +228,11 @@ class Game:
         self.current_worm = self.worms_queue.get()
         self.worms_queue.put(self.current_worm)
 
+        self.player_timer.set_duration(g.PLAYER_TURN_DURATION)
         self.player_timer.reset()
         self.player_timer.start()
+
+        self.threw = False
 
     @staticmethod
     def _generate_starting_worms(
