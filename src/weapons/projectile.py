@@ -24,6 +24,7 @@ class Projectile(Sprite):
         self.launch_time = 0
         self.scale = 100  # 1 mètre = 100 pixels
         self.charge_timer = Timer()
+        self.destroyed = False
 
     def set_position(self, position: Vector2):
         self.start_pos = position
@@ -72,6 +73,10 @@ class Projectile(Sprite):
                     self.kill()
                     break
 
+    def kill(self):
+        self.destroyed = True
+        super().kill()
+
     def update(self):
         if self.charging:
             self.charge_timer.update()
@@ -88,6 +93,10 @@ class Projectile(Sprite):
             self.rect.x = self.start_pos.x + displacement_x
             self.rect.y = self.start_pos.y + displacement_y
 
+            if self.rect.y > g.SCREEN_HEIGHT:
+                self.launched = False
+                self.kill()
+
     def draw(self, screen: Surface, camera_position, zoom_level):
         if self.charging:
             self._draw_charge(screen, camera_position, zoom_level)
@@ -95,15 +104,24 @@ class Projectile(Sprite):
     def _draw_charge(self, screen, camera_position, zoom_level):
         if self.charging:
             normalized_charge = min(
-                self.charge_timer.get_seconds() / g.MAX_CHARGE_DURATION, 1)
+                self.charge_timer.get_seconds() / g.MAX_CHARGE_DURATION, 1
+            )
 
             charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
 
             # Adjust charge indicator position based on camera position and zoom
             adjusted_center = (self.rect.center - camera_position) * zoom_level
             charge_rect = pygame.Rect(
-                adjusted_center[0] + 20, adjusted_center[1] - 70, 50 * zoom_level, 50 * zoom_level
+                adjusted_center[0] + 20,
+                adjusted_center[1] - 70,
+                50 * zoom_level,
+                50 * zoom_level,
             )
             pygame.draw.arc(
-                screen, charge_color, charge_rect, 0, math.pi * 2 * normalized_charge, int(5 * zoom_level)
+                screen,
+                charge_color,
+                charge_rect,
+                0,
+                math.pi * 2 * normalized_charge,
+                int(5 * zoom_level),
             )

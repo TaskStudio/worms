@@ -260,8 +260,6 @@ class Game:
         self.player_timer.reset()
         self.player_timer.start()
 
-        self.current_worm.reset_weapon()
-
     @staticmethod
     def _generate_starting_worms(
         player_1_start_position: Vector2, player_2_start_position: Vector2

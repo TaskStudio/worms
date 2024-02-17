@@ -80,3 +80,5 @@ class Worm(Sprite):
 
         if self.weapon:
             self.weapon.set_position(self.position)
+            if self.weapon.destroyed:
+                self.reset_weapon()
