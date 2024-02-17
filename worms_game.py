@@ -9,8 +9,9 @@ from pygame.time import Clock
 import src.globals as g
 from src.Timer import Timer
 from src.map import MapElement
-from src.projectile import Projectile
 from src.worm import Worm
+from src.weapons import Grenade, Rocket
+from src.forces import Forces
 
 
 class Game:
@@ -42,8 +43,6 @@ class Game:
 
     projectiles : Group
         A group containing all the projectiles.
-    current_projectile : Optional[Projectile]
-        The projectile currently being charged.
 
     game_map : MapElement
         The main map element.
@@ -61,6 +60,9 @@ class Game:
         self.game_clock: Clock = Clock()
 
         self.player_timer = Timer(g.PLAYER_TURN_DURATION)
+
+        # Forces setup
+        self.wind = Forces.generate_wind()
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
@@ -81,7 +83,7 @@ class Game:
 
         # Projectiles setup
         self.projectiles = pygame.sprite.Group()
-        self.current_projectile: Optional[Projectile] = None
+        self.weapon_message = "Weapon: None"
 
         # Map setup
         self.game_map: MapElement = MapElement(
@@ -117,20 +119,26 @@ class Game:
         self.camera_position.x = max(extended_boundary_left, min(desired_camera_x_position, extended_boundary_right))
         # Fix the camera's y position as before
         self.camera_position.y = max(0, 0)  # Adjust as needed
+
         self.screen.fill(color=Color(255, 243, 230))
 
         self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
 
-        self.worms_group.update()
-
-        if self.current_projectile:
-            self.current_projectile.draw(self.screen, self.camera_position, self.zoom_level)
+        Forces.draw_wind(self.screen, self.wind)
+        Forces.draw_wind_arrow(self.screen, self.wind, (self.screen.get_width() - 50, 50))
 
         for projectile in self.projectiles:
             projectile.check_collision(self.worms_group, current_worm=self.current_worm)
+
+        self.worms_group.update()
         self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
         self.projectiles.update()
         self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
+
+        if self.current_worm.weapon_equipped():
+            self.current_worm.aim(pygame.mouse.get_pos() + self.camera_position)
+            if self.current_worm.is_charging():
+                self.current_worm.weapon.draw(self.screen, self.camera_position, self.zoom_level)
 
         # Clock and window refresh
         self.game_clock.tick(g.FPS)
@@ -139,6 +147,11 @@ class Game:
         self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
         if self.player_timer.is_finished():
             self.change_turn()
+
+        # Afficher le message de l'arme actuelle
+        font = pygame.font.Font(None, 36)
+        text = font.render(self.weapon_message, True, (10, 10, 10))
+        self.screen.blit(text, (10, 10))
 
         # Window refresh
         pygame.display.flip()
@@ -174,12 +187,12 @@ class Game:
                         self.game_map: MapElement = MapElement(
                             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
                         )
-                        # Mouse wheel events for zoom
-            elif event.type == pygame.MOUSEWHEEL:
-                if event.y > 0:  # Scroll up to zoom in
-                    self.zoom_level = min(self.zoom_level + 0.1, self.initial_zoom_level)
-                elif event.y < 0:  # Scroll down to zoom out
-                    self.zoom_level = max(self.zoom_level - 0.1, 0.5)  # Adjust the minimum zoom level as needed
+                    case pygame.K_1:
+                        self.current_worm.set_weapon(Grenade)
+                        self.weapon_message = "Weapon: Grenade"
+                    case pygame.K_2:
+                        self.current_worm.set_weapon(Rocket)
+                        self.weapon_message = "Weapon: Rocket"
 
             if event.type == pygame.KEYUP:
                 match event.key:
@@ -188,15 +201,18 @@ class Game:
 
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if not self.current_projectile:
-                    self.current_projectile = Projectile(
-                        self.current_worm.rect.center, pygame.mouse.get_pos()
-                    )
-                    self.current_projectile.start_charging()
-                    self.projectiles.add(self.current_projectile)
-            if event.type == pygame.MOUSEBUTTONUP and self.current_projectile:
-                self.current_projectile.stop_charging()
-                self.current_projectile = None
+                if self.current_worm.weapon_equipped():
+                    self.current_worm.charge_weapon()
+                    self.projectiles.add(self.current_worm.weapon)
+            if event.type == pygame.MOUSEBUTTONUP:
+                if self.current_worm.is_charging():
+                    self.current_worm.release_weapon()
+
+            if event.type == pygame.MOUSEWHEEL:
+                if event.y > 0:  # Scroll up to zoom in
+                    self.zoom_level = min(self.zoom_level + 0.1, self.initial_zoom_level)
+                elif event.y < 0:  # Scroll down to zoom out
+                    self.zoom_level = max(self.zoom_level - 0.1, 0.5)  # Adjust the minimum zoom level as needed
 
     def change_turn(self):
         self.current_worm.stop_moving()

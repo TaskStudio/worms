@@ -4,6 +4,8 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.sprite import Sprite
 
+from src.weapons import Projectile
+
 
 class Worm(Sprite):
     """
@@ -27,6 +29,10 @@ class Worm(Sprite):
         self.player = player
         self.color = color
 
+        self.weapon_class: type[Projectile] | None = None
+        self.weapon: Projectile | None = None
+        self.aim_target: Vector2 | None = None
+
     def move_right(self) -> None:
         self.velocity.x = 1
 
@@ -38,6 +44,7 @@ class Worm(Sprite):
 
     def is_dead(self) -> bool:
         return self.hp <= 0
+
 
     def draw_info(self, surface, camera_position, zoom_level):
         font = pygame.font.Font(None, int(24 * zoom_level))
@@ -54,6 +61,29 @@ class Worm(Sprite):
         surface.blit(name_text, name_text_pos)
         surface.blit(hp_text, hp_text_pos)
 
+    def is_charging(self):
+        return self.weapon.charging if self.weapon else False
+
+    def set_weapon(self, weapon_class: type[Projectile]):
+        self.weapon_class = weapon_class
+
+    def aim(self, target: Vector2):
+        self.aim_target = target
+
+    def charge_weapon(self):
+        self.weapon = self.weapon_class()
+        self.weapon.set_target(self.aim_target)
+        self.weapon.start_charging()
+
+    def release_weapon(self):
+        self.weapon.stop_charging()
+
+    def weapon_equipped(self):
+        return self.weapon_class is not None
+
     def update(self, *args, **kwargs):
         self.position += self.velocity * self.speed
         self.rect.center = self.position
+
+        if self.weapon:
+            self.weapon.set_position(self.position)
