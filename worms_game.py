@@ -150,6 +150,9 @@ class Game:
             scaled_image = pygame.transform.scale(sprite.image, scaled_size)
             surface.blit(scaled_image, adjusted_pos)
 
+            if isinstance(sprite, Worm):
+                sprite.draw_info(surface, self.camera_position, self.zoom_level)
+
     def _handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -211,19 +214,19 @@ class Game:
         self.player_timer.reset()
         self.player_timer.start()
 
-    @staticmethod
-    def _generate_starting_worms(
-            player_1_start_position: Vector2, player_2_start_position: Vector2
-    ) -> tuple[Group, Group]:
+    def _generate_starting_worms(self, player_1_start_position: Vector2, player_2_start_position: Vector2) -> tuple[
+        Group, Group]:
         player_1_worms: Group[Worm] = Group(
             [
-                Worm(position=player_1_start_position + Vector2(i * 100, 0))
+                Worm(position=player_1_start_position + Vector2(i * 100, 0), name=f"Worm {i + 1}", player=1,
+                     color=(0, 0, 255))
                 for i in range(g.WORMS_PER_PLAYER)
             ]
         )
         player_2_worms: Group[Worm] = Group(
             [
-                Worm(position=player_2_start_position - Vector2(i * 100, 0))
+                Worm(position=player_2_start_position - Vector2(i * 100, 0), name=f"Worm {i + 1}", player=2,
+                     color=(255, 0, 0))
                 for i in range(g.WORMS_PER_PLAYER)
             ]
         )
