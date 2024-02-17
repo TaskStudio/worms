@@ -1,22 +1,21 @@
 import math
 
 import pygame
-from pygame import Color, Surface
+from pygame import Color, Surface, Vector2
 from pygame.sprite import Group
 
 import src.globals as g
-from src.worm import Worm
 from src.Timer import Timer
 
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, start_pos, target_pos):
+    def __init__(self):
         super().__init__()
         self.image = pygame.Surface((5, 5))
         self.image.fill(Color(255, 0, 0))
-        self.rect = self.image.get_rect(center=start_pos)
-        self.start_pos = pygame.math.Vector2(start_pos)
-        self.target_pos = pygame.math.Vector2(target_pos)
+        self.rect = self.image.get_rect()
+        self.start_pos = Vector2()
+        self.target_pos = Vector2()
         self.charging_start_time = None
         self.velocity = pygame.math.Vector2(0, 0)
         self.charging = False
@@ -25,6 +24,13 @@ class Projectile(pygame.sprite.Sprite):
         self.launch_time = 0
         self.scale = 100  # 1 mètre = 100 pixels
         self.charge_timer = Timer()
+
+    def set_position(self, position: Vector2):
+        self.start_pos = position
+        self.rect.center = position
+
+    def set_target(self, target: Vector2):
+        self.target_pos = target
 
     def calculate_initial_velocity(self, angle, speed):
         # Convertir la vitesse en pixels/s, ajustée par l'échelle
@@ -57,6 +63,15 @@ class Projectile(pygame.sprite.Sprite):
         self.charging = False
         self.launched = True
 
+    def check_collision(self, worms_group: Group, *, current_worm: "Worm"):
+        if self.launched:
+            hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
+            for hit_worm in hit_worms:
+                if hit_worm != current_worm:
+                    worms_group.remove(hit_worm)
+                    self.kill()
+                    break
+
     def update(self):
         if self.charging:
             self.charge_timer.update()
@@ -76,15 +91,6 @@ class Projectile(pygame.sprite.Sprite):
     def draw(self, screen: Surface, camera_position, zoom_level):
         if self.charging:
             self._draw_charge(screen, camera_position, zoom_level)
-
-    def check_collision(self, worms_group: Group, *, current_worm: Worm):
-        if self.launched:
-            hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
-            for hit_worm in hit_worms:
-                if hit_worm != current_worm:
-                    worms_group.remove(hit_worm)
-                    self.kill()
-                    break
 
     def _draw_charge(self, screen, camera_position, zoom_level):
         if self.charging:
