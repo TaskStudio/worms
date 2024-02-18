@@ -1,4 +1,6 @@
-from src.weapons.projectile import Projectile
+import pygame
+
+from .projectile import Projectile
 
 
 class Grenade(Projectile):
