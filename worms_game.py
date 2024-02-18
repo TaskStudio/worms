@@ -91,9 +91,7 @@ class Game:
 
         # Physics setup
         self.wind = Forces.generate_wind()
-        self.physics_manager = PhysicsManager(
-            self.game_clock, [worm for worm in self.worms_group]
-        )
+        self.physics_manager = PhysicsManager(self.game_clock)
 
         # Camera option
         self.camera_position = Vector2(0, 0)
@@ -256,6 +254,8 @@ class Game:
                     self.player_timer.set_duration(5)
                     self.player_timer.reset()
                     self.player_timer.start()
+
+                    self.physics_manager.add_rigidbody(self.current_worm.weapon)
 
             if event.type == pygame.MOUSEWHEEL:
                 if event.y > 0:  # Scroll up to zoom in

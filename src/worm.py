@@ -4,14 +4,10 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.sprite import Sprite
 
-import src.globals as g
-from src.physics import (
-    Rigidbody,
-)
 from src.weapons import Projectile
 
 
-class Worm(Sprite, Rigidbody):
+class Worm(Sprite):
     """
     Class for the worms the players will control.
     """
@@ -26,7 +22,7 @@ class Worm(Sprite, Rigidbody):
         color=(255, 255, 255),
     ) -> None:
         Sprite.__init__(self)
-        Rigidbody.__init__(self, mass=g.WORMS_MASS, position=position)
+        # Rigidbody.__init__(self, mass=g.WORMS_MASS, position=position)
 
         original_image: Surface = pygame.image.load("src/assets/worm.png")
         scaled_size = (
@@ -52,17 +48,17 @@ class Worm(Sprite, Rigidbody):
 
     def move_right(self):
         if not self.is_moving:
-            self.set_velocity(Vector2(self.move_force, 0))
+            # self.set_velocity(Vector2(self.move_force, 0))
             self.is_moving = True
 
     def move_left(self):
         if not self.is_moving:
-            self.set_velocity(Vector2(-self.move_force, 0))
+            # self.set_velocity(Vector2(-self.move_force, 0))
             self.is_moving = True
 
     def stop_moving(self):
         self.is_moving = False
-        super().clear_horizontal_velocity()
+        # self.clear_horizontal_velocity()
 
     def is_dead(self) -> bool:
         return self.hp <= 0
@@ -139,6 +135,7 @@ class Worm(Sprite, Rigidbody):
 
     def charge_weapon(self):
         self.weapon = self.weapon_class()
+        self.weapon.set_position(Vector2(self.rect.center))
         self.weapon.set_target(self.aim_target)
         self.weapon.start_charging()
 
@@ -151,6 +148,6 @@ class Worm(Sprite, Rigidbody):
 
     def update(self) -> None:
         super().update()
-        self.rect.center = self.position
-        if self.weapon:
-            self.weapon.set_position(self.position)
+        # self.rect.center = self.position
+        # if self.weapon and not self.weapon_fired:
+        #     self.weapon.set_position(Vector2(self.rect.center))
