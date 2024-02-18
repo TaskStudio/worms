@@ -6,7 +6,6 @@ from pygame.sprite import Sprite
 
 import src.globals as g
 from src.physics import Rigidbody
-from src.weapons import Projectile, Grenade, Rocket
 
 
 class Worm(Sprite):
@@ -47,17 +46,17 @@ class Worm(Sprite):
 
     def move_right(self):
         if not self.is_moving:
-            # self.set_velocity(Vector2(self.move_force, 0))
+            self.rb.set_velocity(Vector2(self.move_force, 0))
             self.is_moving = True
 
     def move_left(self):
         if not self.is_moving:
-            # self.set_velocity(Vector2(-self.move_force, 0))
+            self.rb.set_velocity(Vector2(-self.move_force, 0))
             self.is_moving = True
 
     def stop_moving(self):
         self.is_moving = False
-        # self.clear_horizontal_velocity()
+        self.rb.clear_horizontal_velocity()
 
     def is_dead(self) -> bool:
         return self.hp <= 0
