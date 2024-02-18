@@ -1,4 +1,4 @@
-from src.weapons.projectile import Projectile  # Assure-toi que le chemin d'importation est correct
+from src.weapons.projectile import Projectile
 
 
 class Grenade(Projectile):
