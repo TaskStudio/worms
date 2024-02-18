@@ -264,14 +264,11 @@ class Game:
 
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if (
-                    self.current_worm.weapon_equipped()
-                    and not self.current_worm.weapon_fired
-                ):
+                if self.current_worm.weapon_equipped() and not self.current_worm.weapon_fired and not self.current_worm.is_dead():
                     self.current_worm.charge_weapon()
                     self.projectiles.add(self.current_worm.weapon)
             if event.type == pygame.MOUSEBUTTONUP:
-                if self.current_worm.is_charging():
+                if self.current_worm.is_charging() and not self.current_worm.is_dead():
                     self.current_worm.release_weapon()
                     self.player_timer.set_duration(5)
                     self.player_timer.reset()
