@@ -148,3 +148,8 @@ class Worm(Sprite, Rigidbody):
 
     def weapon_equipped(self):
         return self.weapon_class is not None
+
+    def update(self) -> None:
+        super().update()
+        if self.weapon:
+            self.weapon.set_position(self.position)
