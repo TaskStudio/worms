@@ -11,6 +11,7 @@ from src.forces import Forces
 from src.map import MapElement
 from src.timer import Timer
 from src.weapons import Grenade, Rocket
+from src.weapons.weapon_bar import WeaponBar
 from src.worm import Worm
 
 
@@ -119,6 +120,10 @@ class Game:
 
 
 
+        weapon_image_paths = ['src/assets/W4_Grenade.webp', 'src/assets/Bazooka.webp']
+        weapon_identifiers = ['Grenade', 'Rocket']
+        self.weapon_bar = WeaponBar((g.SCREEN_WIDTH // 2, 10), weapon_image_paths, weapon_identifiers)
+
     def main(self):
         current_time = pygame.time.get_ticks()
         dt = (current_time - self.last_time) / 1000.0  # Delta time in seconds
@@ -184,6 +189,11 @@ class Game:
             self.screen.fill(color=Color(255, 243, 230))
 
             self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
+            self.draw_worm_queue()
+
+            self.weapon_bar.draw(self.screen)
+            # Update the current worm's weapon based on the selected weapon in the weapon bar
+            selected_weapon_name = self.weapon_bar.get_selected_weapon()
 
             Forces.draw_wind(self.screen, self.wind)
             Forces.draw_wind_arrow(
@@ -263,9 +273,16 @@ class Game:
                     case pygame.K_1:
                         self.current_worm.set_weapon(Grenade)
                         self.weapon_message = "Weapon: Grenade"
+                        self.weapon_bar.selected_weapon_index = 0  # Selects the first weapon
+                        selected_weapon_name = self.weapon_bar.get_selected_weapon()
+                        self.current_worm.set_weapon_by_name(selected_weapon_name)
                     case pygame.K_2:
                         self.current_worm.set_weapon(Rocket)
                         self.weapon_message = "Weapon: Rocket"
+                        if len(self.weapon_bar.weapon_identifiers) > 1:
+                            self.weapon_bar.selected_weapon_index = 1  # Selects the second weapon
+                            selected_weapon_name = self.weapon_bar.get_selected_weapon()
+                            self.current_worm.set_weapon_by_name(selected_weapon_name)
 
             if event.type == pygame.KEYUP:
                 match event.key:
@@ -274,14 +291,11 @@ class Game:
 
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if (
-                    self.current_worm.weapon_equipped()
-                    and not self.current_worm.weapon_fired
-                ):
+                if self.current_worm.weapon_equipped() and not self.current_worm.weapon_fired and not self.current_worm.is_dead():
                     self.current_worm.charge_weapon()
                     self.projectiles.add(self.current_worm.weapon)
             if event.type == pygame.MOUSEBUTTONUP:
-                if self.current_worm.is_charging():
+                if self.current_worm.is_charging() and not self.current_worm.is_dead():
                     self.current_worm.release_weapon()
                     self.player_timer.set_duration(5)
                     self.player_timer.reset()
@@ -296,6 +310,32 @@ class Game:
                     self.zoom_level = max(
                         self.zoom_level - 0.1, 0.5
                     )  # Adjust the minimum zoom level as needed
+
+    def draw_worm_queue(self):
+        font = pygame.font.Font(None, 24)
+        queue_display_position = (10, 50)  # Top-left corner, adjust as needed
+        spacing = 30  # Vertical spacing between names
+
+        # Display a title for the queue
+        title_text = font.render("Next:", True, (255, 255, 255))
+        self.screen.blit(title_text, queue_display_position)
+
+        # Create a temporary queue to hold and display the next few worms without altering the main queue
+        temp_queue = self.worms_queue.queue.copy()  # Assuming Python 3.7+, for older versions use list(self.worms_queue.queue)
+        temp_queue.rotate(-1)  # Adjust based on your current worm handling, to not show the current worm as next
+
+        # Limit the number of worms shown in the queue
+        max_display = 3
+        count = 0
+
+        for worm in list(temp_queue):
+            if count >= max_display:
+                break
+            worm_name = worm.name
+            color = worm.color
+            text = font.render(worm_name, True, color)
+            self.screen.blit(text, (queue_display_position[0], queue_display_position[1] + spacing * (count + 1)))
+            count += 1
 
     def change_turn(self):
         self.current_worm.stop_moving()

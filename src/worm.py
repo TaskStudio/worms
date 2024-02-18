@@ -4,7 +4,7 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.sprite import Sprite
 
-from src.weapons import Projectile
+from src.weapons import Projectile, Grenade, Rocket
 
 
 class Worm(Sprite):
@@ -64,7 +64,6 @@ class Worm(Sprite):
         self.facing_right = False
     def stop_moving(self) -> None:
         self.velocity.x = 0
-        self.is_moving = False
 
     def is_dead(self) -> bool:
         return self.hp <= 0
@@ -165,6 +164,13 @@ class Worm(Sprite):
 
     def set_weapon(self, weapon_class: type[Projectile]):
         self.weapon_class = weapon_class
+
+    def set_weapon_by_name(self, weapon_name):
+        if weapon_name == "Grenade":
+            self.set_weapon(Grenade)
+        elif weapon_name == "Rocket":
+            self.set_weapon(Rocket)
+        # Additional weapons can be added here
 
     def reset_weapon(self):
         self.weapon = None
