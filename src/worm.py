@@ -4,7 +4,7 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.sprite import Sprite
 
-from src.weapons import Projectile
+from src.weapons import Projectile, Grenade, Rocket
 
 
 class Worm(Sprite):
@@ -13,13 +13,13 @@ class Worm(Sprite):
     """
 
     def __init__(
-        self,
-        *,
-        position: tuple[int, int] | Vector2 = (0, 0),
-        scale: float = 0.2,
-        name: str = "",
-        player: int = 1,
-        color=(255, 255, 255),
+            self,
+            *,
+            position: tuple[int, int] | Vector2 = (0, 0),
+            scale: float = 0.2,
+            name: str = "",
+            player: int = 1,
+            color=(255, 255, 255),
     ) -> None:
         super().__init__()
         original_image: Surface = pygame.image.load("src/assets/worm.png")
@@ -63,12 +63,12 @@ class Worm(Sprite):
 
         # Center the name text above the worm
         name_text_pos_x = (
-            self.rect.centerx - camera_position.x
-        ) * zoom_level - name_text.get_width() / 2
+                                  self.rect.centerx - camera_position.x
+                          ) * zoom_level - name_text.get_width() / 2
         name_text_pos_y = (
-            (self.rect.top - camera_position.y) * zoom_level
-            - name_text.get_height()
-            - 10 * zoom_level
+                (self.rect.top - camera_position.y) * zoom_level
+                - name_text.get_height()
+                - 10 * zoom_level
         )  # Adjust the offset as needed
         name_text_pos = Vector2(name_text_pos_x, name_text_pos_y)
         surface.blit(name_text, name_text_pos)
@@ -79,10 +79,10 @@ class Worm(Sprite):
 
         # Center the health bar above the worm
         hp_bar_pos_x = (
-            self.rect.centerx - camera_position.x
-        ) * zoom_level - hp_bar_width / 2
+                               self.rect.centerx - camera_position.x
+                       ) * zoom_level - hp_bar_width / 2
         hp_bar_pos_y = (
-            name_text_pos_y - hp_bar_height - 5 * zoom_level
+                name_text_pos_y - hp_bar_height - 5 * zoom_level
         )  # Place it above the name text with a small offset
         hp_bar_position = Vector2(hp_bar_pos_x, hp_bar_pos_y)
 
@@ -119,6 +119,13 @@ class Worm(Sprite):
 
     def set_weapon(self, weapon_class: type[Projectile]):
         self.weapon_class = weapon_class
+
+    def set_weapon_by_name(self, weapon_name):
+        if weapon_name == "Grenade":
+            self.set_weapon(Grenade)
+        elif weapon_name == "Rocket":
+            self.set_weapon(Rocket)
+        # Additional weapons can be added here
 
     def reset_weapon(self):
         self.weapon = None
