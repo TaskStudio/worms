@@ -42,6 +42,8 @@ class Worm(Sprite):
         self.move_force = 0.1
         self.is_moving = False
 
+        self.weapon_fired = False
+
     def move_right(self):
         if not self.is_moving:
             # self.set_velocity(Vector2(self.move_force, 0))
