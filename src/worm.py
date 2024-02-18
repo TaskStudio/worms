@@ -36,13 +36,13 @@ class Worm(Sprite, Rigidbody):
         self.image: Surface = pygame.transform.scale(original_image, scaled_size)
         self.rect: Rect = self.image.get_rect(center=position)
 
-        self.move_force = 12000
         self.hp: int = 100
         self.max_hp: int = 100
         self.name = name
         self.player = player
         self.color = color
 
+        self.move_force = 12000
         self.is_moving = False
 
         self.weapon_class: type[Projectile] | None = None
@@ -131,7 +131,6 @@ class Worm(Sprite, Rigidbody):
         self.weapon_class = weapon_class
 
     def reset_weapon(self):
-        self.weapon_fired = False
         self.weapon = None
         self.weapon_class = None
 
