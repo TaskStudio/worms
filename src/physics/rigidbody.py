@@ -13,6 +13,7 @@ class Rigidbody:
         self.initial_velocity = velocity
         self.start_pos = position
         self.time = 0
+        self.affected_by_wind = False
 
     def apply_forces(self, force):
         self.start_pos = self.position.copy()

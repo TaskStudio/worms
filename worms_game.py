@@ -65,7 +65,9 @@ class Game:
 
         # Physics setup
         self.wind = Forces.generate_wind()
-        self.physics_manager = PhysicsManager(self.game_clock)
+        self.physics_manager = PhysicsManager(
+            game_clock=self.game_clock, wind=self.wind
+        )
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
@@ -283,7 +285,7 @@ class Game:
                             self.weapon_bar.selected_weapon_index = 0
                     case pygame.K_2:
                         if len(self.weapon_bar.weapon_identifiers) > 1:
-                            self.current_weapon = Rocket(wind=self.wind)
+                            self.current_weapon = Rocket()
                             self.weapon_message = "Weapon: Rocket"
                             self.weapon_bar.selected_weapon_index = 1
 
@@ -375,6 +377,8 @@ class Game:
         self.player_timer.set_duration(g.PLAYER_TURN_DURATION)
         self.player_timer.reset()
         self.player_timer.start()
+
+        self.wind = Forces.generate_wind()
 
     def _generate_starting_worms(
         self, player_1_start_position: Vector2, player_2_start_position: Vector2
