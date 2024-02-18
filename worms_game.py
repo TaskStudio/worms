@@ -132,9 +132,7 @@ class Game:
         # Fix the camera's y position as before
         self.camera_position.y = max(0, 0)  # Adjust as needed
 
-        if self.current_worm.is_charging() or (
-            self.current_worm.weapon_fired and self.current_worm.weapon is not None
-        ):
+        if self.current_worm.weapon_fired and self.current_worm.weapon is not None:
             self.camera_position.x = max(
                 extended_boundary_left,
                 min(
