@@ -269,13 +269,6 @@ class Game:
                         self.current_worm.move_right()
                     case pygame.K_SPACE:
                         self.change_turn()
-                    case pygame.K_r:
-                        self.game_map: MapElement = MapElement(
-                            start_x=0,
-                            start_y=g.SCREEN_HEIGHT,
-                            width=g.SCREEN_WIDTH,
-                            height_diff=40,
-                        )
                     case pygame.K_1:
                         if not self.current_worm.weapon_fired:
                             self.current_weapon = Grenade()
