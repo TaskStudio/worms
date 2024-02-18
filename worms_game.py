@@ -8,6 +8,7 @@ from pygame.time import Clock
 import src.globals as g
 from src.forces import Forces
 from src.map import MapElement
+from src.physics import PhysicsManager
 from src.timer import Timer
 from src.weapons import Grenade, Rocket
 from src.worm import Worm
@@ -60,9 +61,6 @@ class Game:
 
         self.player_timer = Timer(g.PLAYER_TURN_DURATION)
 
-        # Forces setup
-        self.wind = Forces.generate_wind()
-
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
             Vector2(
@@ -89,6 +87,12 @@ class Game:
         # Map setup
         self.game_map: MapElement = MapElement(
             start_x=0, start_y=g.SCREEN_HEIGHT, width=g.SCREEN_WIDTH, height_diff=40
+        )
+
+        # Physics setup
+        self.wind = Forces.generate_wind()
+        self.physics_manager = PhysicsManager(
+            self.game_clock, [worm for worm in self.worms_group]
         )
 
         # Camera option
@@ -150,8 +154,9 @@ class Game:
         for projectile in self.projectiles:
             projectile.check_collision(self.worms_group, current_worm=self.current_worm)
 
-
         self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
+
+        self.physics_manager.update()
 
         Forces.draw_wind(self.screen, self.wind)
         Forces.draw_wind_arrow(
@@ -171,7 +176,6 @@ class Game:
                 )
 
         # Clock and window refresh
-        delta_time = self.game_clock.tick(g.FPS) / 1000.0  # Note pour Sebi (tu peux modifier avec le Timer stp)
         self.game_clock.tick(g.FPS)
 
         self.player_timer.update()
