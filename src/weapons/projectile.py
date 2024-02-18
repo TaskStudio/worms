@@ -11,7 +11,7 @@ from src.timer import Timer
 
 class Projectile(Sprite):
     def __init__(self):
-        Sprite.__init__(self)
+        super().__init__()
         self.rb = Rigidbody(mass=1)
 
         self.image = pygame.Surface((5, 5))
