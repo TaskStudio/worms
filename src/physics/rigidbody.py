@@ -21,7 +21,9 @@ class Rigidbody:
         angle = math.radians(force.angle_to(Vector2(1, 0)))
         x_force = force.magnitude() * math.cos(angle)
         y_force = -force.magnitude() * math.sin(angle)
-        self.initial_velocity = Vector2(x_force, y_force)
+        self.initial_velocity = Vector2(
+            self.initial_velocity.x + x_force, self.initial_velocity.y + y_force
+        )
 
     def set_velocity(self, velocity):
         self.initial_velocity = velocity
@@ -38,5 +40,3 @@ class Rigidbody:
             + self.start_pos.y
             + (0.5 * self.gravity * self.time**2)
         )
-        if self.position.y > g.SCREEN_HEIGHT:
-            self.position.y = g.SCREEN_HEIGHT
