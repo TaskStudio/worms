@@ -11,6 +11,7 @@ from src.forces import Forces
 from src.map import MapElement
 from src.timer import Timer
 from src.weapons import Grenade, Rocket
+from src.weapons.weapon_bar import WeaponBar
 from src.worm import Worm
 
 
@@ -116,6 +117,10 @@ class Game:
                                   self.quit_image, 1)
         self.game_paused = True
 
+        weapon_image_paths = ['src/assets/W4_Grenade.webp', 'src/assets/Bazooka.webp']
+        weapon_identifiers = ['Grenade', 'Rocket']
+        self.weapon_bar = WeaponBar((g.SCREEN_WIDTH // 2, 10), weapon_image_paths, weapon_identifiers)
+
     def main(self):
         self.running = True
         self.player_timer.start()
@@ -174,6 +179,10 @@ class Game:
             self.screen.fill(color=Color(255, 243, 230))
 
             self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
+
+            self.weapon_bar.draw(self.screen)
+            # Update the current worm's weapon based on the selected weapon in the weapon bar
+            selected_weapon_name = self.weapon_bar.get_selected_weapon()
 
             Forces.draw_wind(self.screen, self.wind)
             Forces.draw_wind_arrow(
@@ -253,9 +262,16 @@ class Game:
                     case pygame.K_1:
                         self.current_worm.set_weapon(Grenade)
                         self.weapon_message = "Weapon: Grenade"
+                        self.weapon_bar.selected_weapon_index = 0  # Selects the first weapon
+                        selected_weapon_name = self.weapon_bar.get_selected_weapon()
+                        self.current_worm.set_weapon_by_name(selected_weapon_name)
                     case pygame.K_2:
                         self.current_worm.set_weapon(Rocket)
                         self.weapon_message = "Weapon: Rocket"
+                        if len(self.weapon_bar.weapon_identifiers) > 1:
+                            self.weapon_bar.selected_weapon_index = 1  # Selects the second weapon
+                            selected_weapon_name = self.weapon_bar.get_selected_weapon()
+                            self.current_worm.set_weapon_by_name(selected_weapon_name)
 
             if event.type == pygame.KEYUP:
                 match event.key:
