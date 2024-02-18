@@ -103,28 +103,40 @@ class Game:
         self.zoom_level = 1.0
         self.initial_zoom_level = 1.0
 
-        self.resume_image = pygame.image.load('src/assets/button_resume.png').convert_alpha()
-        self.quit_image = pygame.image.load('src/assets/button_quit.png').convert_alpha()
+        self.resume_image = pygame.image.load(
+            "src/assets/button_resume.png"
+        ).convert_alpha()
+        self.quit_image = pygame.image.load(
+            "src/assets/button_quit.png"
+        ).convert_alpha()
 
         # Calculate the button height dynamically from the image
         resume_button_height = self.resume_image.get_height()
         quit_button_height = self.quit_image.get_height()
 
         # Position the resume button centered on the screen
-        self.resume_button = Button(g.SCREEN_WIDTH / 2 - self.resume_image.get_width() / 2,
-                                    g.SCREEN_HEIGHT / 2 - resume_button_height / 2,
-                                    self.resume_image, 1)
+        self.resume_button = Button(
+            g.SCREEN_WIDTH / 2 - self.resume_image.get_width() / 2,
+            g.SCREEN_HEIGHT / 2 - resume_button_height / 2,
+            self.resume_image,
+            1,
+        )
 
         # Position the quit button below the resume button with a dynamic gap
         gap = 20  # Define a gap between the buttons
-        self.quit_button = Button(g.SCREEN_WIDTH / 2 - self.quit_image.get_width() / 2,
-                                  g.SCREEN_HEIGHT / 2 + quit_button_height / 2 + gap,
-                                  self.quit_image, 1)
+        self.quit_button = Button(
+            g.SCREEN_WIDTH / 2 - self.quit_image.get_width() / 2,
+            g.SCREEN_HEIGHT / 2 + quit_button_height / 2 + gap,
+            self.quit_image,
+            1,
+        )
         self.game_paused = True
 
-        weapon_image_paths = ['src/assets/W4_Grenade.webp', 'src/assets/Bazooka.webp']
-        weapon_identifiers = ['Grenade', 'Rocket']
-        self.weapon_bar = WeaponBar((g.SCREEN_WIDTH // 2, 10), weapon_image_paths, weapon_identifiers)
+        weapon_image_paths = ["src/assets/W4_Grenade.webp", "src/assets/Bazooka.webp"]
+        weapon_identifiers = ["Grenade", "Rocket"]
+        self.weapon_bar = WeaponBar(
+            (g.SCREEN_WIDTH // 2, 10), weapon_image_paths, weapon_identifiers
+        )
 
     def main(self):
         self.running = True
@@ -194,9 +206,10 @@ class Game:
             )
             self.physics_manager.update()
 
-
             for projectile in self.projectiles:
-                projectile.check_collision(self.worms_group, current_worm=self.current_worm)
+                projectile.check_collision(
+                    self.worms_group, current_worm=self.current_worm
+                )
 
             self.worms_group.update()
             self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
@@ -204,7 +217,9 @@ class Game:
             self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
 
             if self.current_weapon:
-                self.current_weapon.draw(self.screen, self.camera_position, self.zoom_level)
+                self.current_weapon.draw(
+                    self.screen, self.camera_position, self.zoom_level
+                )
 
             # Clock and window refresh
             self.game_clock.tick(g.FPS)
@@ -316,8 +331,12 @@ class Game:
         self.screen.blit(title_text, queue_display_position)
 
         # Create a temporary queue to hold and display the next few worms without altering the main queue
-        temp_queue = self.worms_queue.queue.copy()  # Assuming Python 3.7+, for older versions use list(self.worms_queue.queue)
-        temp_queue.rotate(-1)  # Adjust based on your current worm handling, to not show the current worm as next
+        temp_queue = (
+            self.worms_queue.queue.copy()
+        )  # Assuming Python 3.7+, for older versions use list(self.worms_queue.queue)
+        temp_queue.rotate(
+            -1
+        )  # Adjust based on your current worm handling, to not show the current worm as next
 
         # Limit the number of worms shown in the queue
         max_display = 3
@@ -329,12 +348,19 @@ class Game:
             worm_name = worm.name
             color = worm.color
             text = font.render(worm_name, True, color)
-            self.screen.blit(text, (queue_display_position[0], queue_display_position[1] + spacing * (count + 1)))
+            self.screen.blit(
+                text,
+                (
+                    queue_display_position[0],
+                    queue_display_position[1] + spacing * (count + 1),
+                ),
+            )
             count += 1
 
     def change_turn(self):
         self.current_worm.stop_moving()
         self.current_worm.weapon_fired = False
+        self.current_weapon = None
 
         for _ in range(self.worms_queue.qsize()):
             worm = self.worms_queue.get()
