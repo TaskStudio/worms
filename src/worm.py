@@ -22,12 +22,13 @@ class Worm(Sprite):
             color=(255, 255, 255),
     ) -> None:
         super().__init__()
-        self.frames = self.load_frames('src/assets/spelunky___worms_boggy_b_custom_skin_finished_by_doodlinghitman_da0tnrs-pre.png')
+        self.frames = self.load_frames(
+            'src/assets/spelunky___worms_boggy_b_custom_skin_finished_by_doodlinghitman_da0tnrs-pre.png')
         original_image: Surface = self.frames[0]
         scaled_size = (
             int(original_image.get_width() * scale),
-            int(original_image.get_height() * scale),
-        )
+            int(original_image.get_height() * scale))
+
         self.image: Surface = pygame.transform.scale(original_image, scaled_size)
         self.rect: Rect = self.image.get_rect(center=position)
 
@@ -46,7 +47,6 @@ class Worm(Sprite):
         self.aim_target: Vector2 | None = None
         self.weapon_fired: bool = False
 
-
         self.current_frame = 0
         self.animation_speed = 0.04  # Time in seconds to wait before switching to next frame
         self.time_since_last_frame = 0
@@ -62,6 +62,7 @@ class Worm(Sprite):
         self.velocity.x = -1
         self.is_moving = True
         self.facing_right = False
+
     def stop_moving(self) -> None:
         self.velocity.x = 0
 
