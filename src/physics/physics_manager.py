@@ -4,7 +4,9 @@ from src.physics import Rigidbody
 
 
 class PhysicsManager:
-    def __init__(self, game_clock: Clock, rigidbodies: list[Rigidbody] = []) -> None:
+    def __init__(
+        self, game_clock: Clock, rigidbodies: list[Rigidbody] | None = None
+    ) -> None:
         self.rigidbodies: list[Rigidbody] = rigidbodies
         self.game_clock: Clock = game_clock
 

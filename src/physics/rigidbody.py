@@ -14,11 +14,11 @@ class Rigidbody:
     def add_force(self, force):
         self.forces += force / self.mass
 
-    def set_force(self, force):
-        self.forces = force / self.mass
+    def set_velocity(self, velocity):
+        self.velocity = velocity / self.mass
 
-    def clear_horizontal_forces(self):
-        self.forces.x = 0
+    def clear_horizontal_velocity(self):
+        self.velocity.x = 0
 
     def physics_update(self, delta_time):
         # Apply gravity as a constant force
