@@ -7,9 +7,9 @@ from pygame.time import Clock
 
 import src.globals as g
 from src.button import Button
-from src.forces import Forces
 from src.map import MapElement
 from src.physics import PhysicsManager
+from src.physics.forces import Forces
 from src.timer import Timer
 from src.weapons import Grenade, Rocket
 from src.weapons.weapon_bar import WeaponBar
@@ -204,7 +204,7 @@ class Game:
 
             Forces.draw_wind(self.screen, self.wind)
             Forces.draw_wind_arrow(
-                self.screen, self.wind, (self.screen.get_width() - 50, 50)
+                self.screen, self.wind, (self.screen.get_width() - 75, 25)
             )
             self.physics_manager.update()
 
