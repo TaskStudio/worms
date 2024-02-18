@@ -174,6 +174,7 @@ class Game:
             self.screen.fill(color=Color(255, 243, 230))
 
             self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
+            self.draw_worm_queue()
 
             Forces.draw_wind(self.screen, self.wind)
             Forces.draw_wind_arrow(
@@ -286,6 +287,32 @@ class Game:
                     self.zoom_level = max(
                         self.zoom_level - 0.1, 0.5
                     )  # Adjust the minimum zoom level as needed
+
+    def draw_worm_queue(self):
+        font = pygame.font.Font(None, 24)
+        queue_display_position = (10, 50)  # Top-left corner, adjust as needed
+        spacing = 30  # Vertical spacing between names
+
+        # Display a title for the queue
+        title_text = font.render("Next:", True, (255, 255, 255))
+        self.screen.blit(title_text, queue_display_position)
+
+        # Create a temporary queue to hold and display the next few worms without altering the main queue
+        temp_queue = self.worms_queue.queue.copy()  # Assuming Python 3.7+, for older versions use list(self.worms_queue.queue)
+        temp_queue.rotate(-1)  # Adjust based on your current worm handling, to not show the current worm as next
+
+        # Limit the number of worms shown in the queue
+        max_display = 3
+        count = 0
+
+        for worm in list(temp_queue):
+            if count >= max_display:
+                break
+            worm_name = worm.name
+            color = worm.color
+            text = font.render(worm_name, True, color)
+            self.screen.blit(text, (queue_display_position[0], queue_display_position[1] + spacing * (count + 1)))
+            count += 1
 
     def change_turn(self):
         self.current_worm.stop_moving()

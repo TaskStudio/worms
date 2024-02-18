@@ -114,6 +114,7 @@ class Worm(Sprite):
             ),
         )
 
+
     def is_charging(self):
         return self.weapon.charging if self.weapon else False
 
