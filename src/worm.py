@@ -4,7 +4,8 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.sprite import Sprite
 
-from src.weapons import Projectile, Grenade, Rocket
+import src.globals as g
+from src.physics import Rigidbody
 
 
 class Worm(Sprite):
@@ -13,15 +14,17 @@ class Worm(Sprite):
     """
 
     def __init__(
-            self,
-            *,
-            position: tuple[int, int] | Vector2 = (0, 0),
-            scale: float = 0.2,
-            name: str = "",
-            player: int = 1,
-            color=(255, 255, 255),
+        self,
+        *,
+        position: tuple[int, int] | Vector2 = (0, 0),
+        scale: float = 0.2,
+        name: str = "",
+        player: int = 1,
+        color=(255, 255, 255),
     ) -> None:
-        super().__init__()
+        Sprite.__init__(self)
+        self.rb = Rigidbody(mass=g.WORMS_MASS, position=position)
+
         original_image: Surface = pygame.image.load("src/assets/worm.png")
         scaled_size = (
             int(original_image.get_width() * scale),
@@ -30,29 +33,30 @@ class Worm(Sprite):
         self.image: Surface = pygame.transform.scale(original_image, scaled_size)
         self.rect: Rect = self.image.get_rect(center=position)
 
-        self.position = Vector2(position)
-        self.velocity = Vector2(0, 0)
-        self.speed = 0.2
-
         self.hp: int = 100
         self.max_hp: int = 100
         self.name = name
         self.player = player
         self.color = color
 
-        self.weapon_class: type[Projectile] | None = None
-        self.weapon: Projectile | None = None
-        self.aim_target: Vector2 | None = None
-        self.weapon_fired: bool = False
+        self.move_force = 0.1
+        self.is_moving = False
 
-    def move_right(self) -> None:
-        self.velocity.x = 1
+        self.weapon_fired = False
 
-    def move_left(self) -> None:
-        self.velocity.x = -1
+    def move_right(self):
+        if not self.is_moving:
+            self.rb.set_velocity(Vector2(self.move_force, 0))
+            self.is_moving = True
 
-    def stop_moving(self) -> None:
-        self.velocity.x = 0
+    def move_left(self):
+        if not self.is_moving:
+            self.rb.set_velocity(Vector2(-self.move_force, 0))
+            self.is_moving = True
+
+    def stop_moving(self):
+        self.is_moving = False
+        self.rb.clear_horizontal_velocity()
 
     def is_dead(self) -> bool:
         return self.hp <= 0
@@ -63,12 +67,12 @@ class Worm(Sprite):
 
         # Center the name text above the worm
         name_text_pos_x = (
-                                  self.rect.centerx - camera_position.x
-                          ) * zoom_level - name_text.get_width() / 2
+            self.rect.centerx - camera_position.x
+        ) * zoom_level - name_text.get_width() / 2
         name_text_pos_y = (
-                (self.rect.top - camera_position.y) * zoom_level
-                - name_text.get_height()
-                - 10 * zoom_level
+            (self.rect.top - camera_position.y) * zoom_level
+            - name_text.get_height()
+            - 10 * zoom_level
         )  # Adjust the offset as needed
         name_text_pos = Vector2(name_text_pos_x, name_text_pos_y)
         surface.blit(name_text, name_text_pos)
@@ -79,10 +83,10 @@ class Worm(Sprite):
 
         # Center the health bar above the worm
         hp_bar_pos_x = (
-                               self.rect.centerx - camera_position.x
-                       ) * zoom_level - hp_bar_width / 2
+            self.rect.centerx - camera_position.x
+        ) * zoom_level - hp_bar_width / 2
         hp_bar_pos_y = (
-                name_text_pos_y - hp_bar_height - 5 * zoom_level
+            name_text_pos_y - hp_bar_height - 5 * zoom_level
         )  # Place it above the name text with a small offset
         hp_bar_position = Vector2(hp_bar_pos_x, hp_bar_pos_y)
 
@@ -114,44 +118,8 @@ class Worm(Sprite):
             ),
         )
 
-
-    def is_charging(self):
-        return self.weapon.charging if self.weapon else False
-
-    def set_weapon(self, weapon_class: type[Projectile]):
-        self.weapon_class = weapon_class
-
-    def set_weapon_by_name(self, weapon_name):
-        if weapon_name == "Grenade":
-            self.set_weapon(Grenade)
-        elif weapon_name == "Rocket":
-            self.set_weapon(Rocket)
-        # Additional weapons can be added here
-
-    def reset_weapon(self):
-        self.weapon = None
-        self.weapon_class = None
-
-    def aim(self, target: Vector2):
-        self.aim_target = target
-
-    def charge_weapon(self):
-        self.weapon = self.weapon_class()
-        self.weapon.set_target(self.aim_target)
-        self.weapon.start_charging()
-
-    def release_weapon(self):
-        self.weapon.stop_charging()
-        self.weapon_fired = True
-
-    def weapon_equipped(self):
-        return self.weapon_class is not None
-
-    def update(self, *args, **kwargs):
-        self.position += self.velocity * self.speed
-        self.rect.center = self.position
-
-        if self.weapon:
-            self.weapon.set_position(self.position)
-            if self.weapon.destroyed:
-                self.reset_weapon()
+    def update(self) -> None:
+        super().update()
+        self.rect.center = self.rb.position
+        if self.rect.centery > g.SCREEN_HEIGHT - 50:
+            self.rect.centery = g.SCREEN_HEIGHT - 50

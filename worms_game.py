@@ -9,6 +9,7 @@ import src.globals as g
 from src.button import Button
 from src.forces import Forces
 from src.map import MapElement
+from src.physics import PhysicsManager
 from src.timer import Timer
 from src.weapons import Grenade, Rocket
 from src.weapons.weapon_bar import WeaponBar
@@ -62,15 +63,16 @@ class Game:
 
         self.player_timer = Timer(g.PLAYER_TURN_DURATION)
 
-        # Forces setup
+        # Physics setup
         self.wind = Forces.generate_wind()
+        self.physics_manager = PhysicsManager(self.game_clock)
 
         # Worms setup
         self.player_1_worms, self.player_2_worms = self._generate_starting_worms(
             Vector2(
-                100, g.SCREEN_HEIGHT - 50
+                100, g.SCREEN_HEIGHT - 200
             ),  # Adjust starting y to place worms at the bottom
-            Vector2(g.SCREEN_WIDTH - 100, g.SCREEN_HEIGHT - 50),
+            Vector2(g.SCREEN_WIDTH - 100, g.SCREEN_HEIGHT - 200),
         )
         self.worms_group: Group[Worm] = Group(
             [self.player_1_worms, self.player_2_worms]
@@ -80,6 +82,8 @@ class Game:
         for worms in zip(self.player_1_worms, self.player_2_worms):
             self.worms_queue.put(worms[0])
             self.worms_queue.put(worms[1])
+            self.physics_manager.add_rigidbody(worms[0].rb)
+            self.physics_manager.add_rigidbody(worms[1].rb)
 
         self.current_worm: Worm = self.worms_queue.get()
         self.worms_queue.put(self.current_worm)
@@ -87,6 +91,7 @@ class Game:
         # Projectiles setup
         self.projectiles = pygame.sprite.Group()
         self.weapon_message = "Weapon: None"
+        self.current_weapon = None
 
         # Map setup
         self.game_map: MapElement = MapElement(
@@ -162,18 +167,16 @@ class Game:
             # Fix the camera's y position as before
             self.camera_position.y = max(0, 0)  # Adjust as needed
 
-            if self.current_worm.is_charging() or (
-                self.current_worm.weapon_fired and self.current_worm.weapon is not None
-            ):
+            if self.current_weapon and self.current_weapon.launched:
                 self.camera_position.x = max(
                     extended_boundary_left,
                     min(
-                        self.current_worm.weapon.rect.centerx - g.SCREEN_WIDTH / 2,
+                        self.current_weapon.rect.centerx - g.SCREEN_WIDTH / 2,
                         extended_boundary_right,
                     ),
                 )
                 self.camera_position.y = max(
-                    0, self.current_worm.weapon.rect.centery - g.SCREEN_HEIGHT / 2
+                    0, self.current_weapon.rect.centery - g.SCREEN_HEIGHT / 2
                 )
 
             self.screen.fill(color=Color(255, 243, 230))
@@ -189,6 +192,8 @@ class Game:
             Forces.draw_wind_arrow(
                 self.screen, self.wind, (self.screen.get_width() - 50, 50)
             )
+            self.physics_manager.update()
+
 
             for projectile in self.projectiles:
                 projectile.check_collision(self.worms_group, current_worm=self.current_worm)
@@ -198,19 +203,15 @@ class Game:
             self.projectiles.update()
             self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
 
-            if self.current_worm.weapon_equipped():
-                self.current_worm.aim(pygame.mouse.get_pos() + self.camera_position)
-                if self.current_worm.is_charging():
-                    self.current_worm.weapon.draw(
-                        self.screen, self.camera_position, self.zoom_level
-                    )
+            if self.current_weapon:
+                self.current_weapon.draw(self.screen, self.camera_position, self.zoom_level)
 
             # Clock and window refresh
             self.game_clock.tick(g.FPS)
 
             self.player_timer.update()
             self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
-            if self.player_timer.is_finished():
+            if self.player_timer.get_countdown() <= 0:
                 self.change_turn()
 
             # Afficher le message de l'arme actuelle
@@ -261,18 +262,15 @@ class Game:
                             height_diff=40,
                         )
                     case pygame.K_1:
-                        self.current_worm.set_weapon(Grenade)
-                        self.weapon_message = "Weapon: Grenade"
-                        self.weapon_bar.selected_weapon_index = 0  # Selects the first weapon
-                        selected_weapon_name = self.weapon_bar.get_selected_weapon()
-                        self.current_worm.set_weapon_by_name(selected_weapon_name)
+                        if not self.current_worm.weapon_fired:
+                            self.current_weapon = Grenade()
+                            self.weapon_message = "Weapon: Grenade"
+                            self.weapon_bar.selected_weapon_index = 0
                     case pygame.K_2:
-                        self.current_worm.set_weapon(Rocket)
-                        self.weapon_message = "Weapon: Rocket"
                         if len(self.weapon_bar.weapon_identifiers) > 1:
-                            self.weapon_bar.selected_weapon_index = 1  # Selects the second weapon
-                            selected_weapon_name = self.weapon_bar.get_selected_weapon()
-                            self.current_worm.set_weapon_by_name(selected_weapon_name)
+                            self.current_weapon = Rocket()
+                            self.weapon_message = "Weapon: Rocket"
+                            self.weapon_bar.selected_weapon_index = 1
 
             if event.type == pygame.KEYUP:
                 match event.key:
@@ -281,15 +279,22 @@ class Game:
 
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.current_worm.weapon_equipped() and not self.current_worm.weapon_fired and not self.current_worm.is_dead():
-                    self.current_worm.charge_weapon()
-                    self.projectiles.add(self.current_worm.weapon)
+                if self.current_weapon and not self.current_worm.weapon_fired:
+                    self.current_weapon.set_position(
+                        Vector2(self.current_worm.rect.center)
+                    )
+                    self.current_weapon.set_target(Vector2(pygame.mouse.get_pos()))
+                    self.current_weapon.start_charging()
+                    self.projectiles.add(self.current_weapon)
             if event.type == pygame.MOUSEBUTTONUP:
-                if self.current_worm.is_charging() and not self.current_worm.is_dead():
-                    self.current_worm.release_weapon()
+                if self.current_weapon and not self.current_worm.weapon_fired:
+                    self.current_weapon.stop_charging()
+                    self.current_worm.weapon_fired = True
                     self.player_timer.set_duration(5)
                     self.player_timer.reset()
                     self.player_timer.start()
+
+                    self.physics_manager.add_rigidbody(self.current_weapon.rb)
 
             if event.type == pygame.MOUSEWHEEL:
                 if event.y > 0:  # Scroll up to zoom in
@@ -329,7 +334,6 @@ class Game:
 
     def change_turn(self):
         self.current_worm.stop_moving()
-        self.current_worm.reset_weapon()
         self.current_worm.weapon_fired = False
 
         for _ in range(self.worms_queue.qsize()):
