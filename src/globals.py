@@ -1,6 +1,6 @@
 # Display
 SCREEN_WIDTH = 1480
-SCREEN_HEIGHT = 1080
+SCREEN_HEIGHT = 850
 FPS = 60
 
 # Players
