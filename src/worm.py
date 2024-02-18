@@ -5,9 +5,9 @@ from pygame.rect import Rect
 from pygame.sprite import Sprite
 
 import src.globals as g
-from src.rigidbody import (
+from src.physics import (
     Rigidbody,
-)  # Make sure this import matches your project structure
+)
 from src.weapons import Projectile
 
 
@@ -42,7 +42,7 @@ class Worm(Sprite, Rigidbody):
         self.player = player
         self.color = color
 
-        self.move_force = 12000
+        self.move_force = 0.1
         self.is_moving = False
 
         self.weapon_class: type[Projectile] | None = None
@@ -52,17 +52,17 @@ class Worm(Sprite, Rigidbody):
 
     def move_right(self):
         if not self.is_moving:
-            self.set_force(Vector2(self.move_force, 0))
+            self.set_velocity(Vector2(self.move_force, 0))
             self.is_moving = True
 
     def move_left(self):
         if not self.is_moving:
-            self.set_force(Vector2(-self.move_force, 0))
+            self.set_velocity(Vector2(-self.move_force, 0))
             self.is_moving = True
 
     def stop_moving(self):
         self.is_moving = False
-        super().clear_horizontal_forces()
+        super().clear_horizontal_velocity()
 
     def is_dead(self) -> bool:
         return self.hp <= 0
@@ -151,5 +151,6 @@ class Worm(Sprite, Rigidbody):
 
     def update(self) -> None:
         super().update()
+        self.rect.center = self.position
         if self.weapon:
             self.weapon.set_position(self.position)
