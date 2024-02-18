@@ -1,6 +1,4 @@
-from src.weapons.projectile import (
-    Projectile,
-)
+from src.weapons.projectile import Projectile
 
 
 class Grenade(Projectile):

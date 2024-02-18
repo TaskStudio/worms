@@ -6,6 +6,7 @@ from pygame.sprite import Sprite
 
 import src.globals as g
 from src.physics import Rigidbody
+from src.weapons import Projectile, Grenade, Rocket
 
 
 class Worm(Sprite):

@@ -55,6 +55,7 @@ class Projectile(Sprite):
             hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
             for hit_worm in hit_worms:
                 if hit_worm != current_worm:
+                    hit_worm.hp = 0
                     worms_group.remove(hit_worm)
                     self.kill()
                     break

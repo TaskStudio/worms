@@ -6,11 +6,13 @@ from pygame.sprite import Group
 from pygame.time import Clock
 
 import src.globals as g
+from src.button import Button
 from src.forces import Forces
 from src.map import MapElement
 from src.physics import PhysicsManager
 from src.timer import Timer
 from src.weapons import Grenade, Rocket
+from src.weapons.weapon_bar import WeaponBar
 from src.worm import Worm
 
 
@@ -101,6 +103,29 @@ class Game:
         self.zoom_level = 1.0
         self.initial_zoom_level = 1.0
 
+        self.resume_image = pygame.image.load('src/assets/button_resume.png').convert_alpha()
+        self.quit_image = pygame.image.load('src/assets/button_quit.png').convert_alpha()
+
+        # Calculate the button height dynamically from the image
+        resume_button_height = self.resume_image.get_height()
+        quit_button_height = self.quit_image.get_height()
+
+        # Position the resume button centered on the screen
+        self.resume_button = Button(g.SCREEN_WIDTH / 2 - self.resume_image.get_width() / 2,
+                                    g.SCREEN_HEIGHT / 2 - resume_button_height / 2,
+                                    self.resume_image, 1)
+
+        # Position the quit button below the resume button with a dynamic gap
+        gap = 20  # Define a gap between the buttons
+        self.quit_button = Button(g.SCREEN_WIDTH / 2 - self.quit_image.get_width() / 2,
+                                  g.SCREEN_HEIGHT / 2 + quit_button_height / 2 + gap,
+                                  self.quit_image, 1)
+        self.game_paused = True
+
+        weapon_image_paths = ['src/assets/W4_Grenade.webp', 'src/assets/Bazooka.webp']
+        weapon_identifiers = ['Grenade', 'Rocket']
+        self.weapon_bar = WeaponBar((g.SCREEN_WIDTH // 2, 10), weapon_image_paths, weapon_identifiers)
+
     def main(self):
         self.running = True
         self.player_timer.start()
@@ -111,77 +136,88 @@ class Game:
         pygame.quit()
 
     def update(self):
-        dead_zone_left = g.SCREEN_WIDTH / 4
-        dead_zone_right = 3 * (g.SCREEN_WIDTH / 4)
-
-        extended_boundary_left = -475
-        extended_boundary_right = (
-            g.SCREEN_WIDTH + 475 - (g.SCREEN_WIDTH / self.zoom_level)
-        )
-        if self.current_worm.rect.centerx < dead_zone_left:
-            desired_camera_x_position = (
-                self.current_worm.rect.centerx - g.SCREEN_WIDTH / 4
-            )
-        elif self.current_worm.rect.centerx > dead_zone_right:
-            desired_camera_x_position = (
-                self.current_worm.rect.centerx - (g.SCREEN_WIDTH / 4) * 3
-            )
+        if self.game_paused:
+            self.screen.fill((0, 0, 0))  # Clear the screen
+            if self.resume_button.draw(self.screen):
+                self.game_paused = False
+            if self.quit_button.draw(self.screen):
+                self.running = False
         else:
-            desired_camera_x_position = self.camera_position.x
-        self.camera_position.x = max(
-            extended_boundary_left,
-            min(desired_camera_x_position, extended_boundary_right),
-        )
-        # Fix the camera's y position as before
-        self.camera_position.y = max(0, 0)  # Adjust as needed
+            dead_zone_left = g.SCREEN_WIDTH / 4
+            dead_zone_right = 3 * (g.SCREEN_WIDTH / 4)
 
-        if self.current_weapon and self.current_weapon.launched:
+            extended_boundary_left = -475
+            extended_boundary_right = (
+                g.SCREEN_WIDTH + 475 - (g.SCREEN_WIDTH / self.zoom_level)
+            )
+            if self.current_worm.rect.centerx < dead_zone_left:
+                desired_camera_x_position = (
+                    self.current_worm.rect.centerx - g.SCREEN_WIDTH / 4
+                )
+            elif self.current_worm.rect.centerx > dead_zone_right:
+                desired_camera_x_position = (
+                    self.current_worm.rect.centerx - (g.SCREEN_WIDTH / 4) * 3
+                )
+            else:
+                desired_camera_x_position = self.camera_position.x
             self.camera_position.x = max(
                 extended_boundary_left,
-                min(
-                    self.current_weapon.rect.centerx - g.SCREEN_WIDTH / 2,
-                    extended_boundary_right,
-                ),
+                min(desired_camera_x_position, extended_boundary_right),
             )
-            self.camera_position.y = max(
-                0, self.current_weapon.rect.centery - g.SCREEN_HEIGHT / 2
+            # Fix the camera's y position as before
+            self.camera_position.y = max(0, 0)  # Adjust as needed
+
+            if self.current_weapon and self.current_weapon.launched:
+                self.camera_position.x = max(
+                    extended_boundary_left,
+                    min(
+                        self.current_weapon.rect.centerx - g.SCREEN_WIDTH / 2,
+                        extended_boundary_right,
+                    ),
+                )
+                self.camera_position.y = max(
+                    0, self.current_weapon.rect.centery - g.SCREEN_HEIGHT / 2
+                )
+
+            self.screen.fill(color=Color(255, 243, 230))
+
+            self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
+            self.draw_worm_queue()
+
+            self.weapon_bar.draw(self.screen)
+            # Update the current worm's weapon based on the selected weapon in the weapon bar
+            selected_weapon_name = self.weapon_bar.get_selected_weapon()
+
+            Forces.draw_wind(self.screen, self.wind)
+            Forces.draw_wind_arrow(
+                self.screen, self.wind, (self.screen.get_width() - 50, 50)
             )
+            self.physics_manager.update()
 
-        self.screen.fill(color=Color(255, 243, 230))
 
-        # Gestion des collisions entre les projectiles et les worms
-        for projectile in self.projectiles:
-            projectile.check_collision(self.worms_group, current_worm=self.current_worm)
+            for projectile in self.projectiles:
+                projectile.check_collision(self.worms_group, current_worm=self.current_worm)
 
-        self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
+            self.worms_group.update()
+            self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
+            self.projectiles.update()
+            self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
 
-        self.physics_manager.update()
+            if self.current_weapon:
+                self.current_weapon.draw(self.screen, self.camera_position, self.zoom_level)
 
-        Forces.draw_wind(self.screen, self.wind)
-        Forces.draw_wind_arrow(
-            self.screen, self.wind, (self.screen.get_width() - 50, 50)
-        )
+            # Clock and window refresh
+            self.game_clock.tick(g.FPS)
 
-        self.worms_group.update()
-        self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
-        self.projectiles.update()
-        self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
+            self.player_timer.update()
+            self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
+            if self.player_timer.get_countdown() <= 0:
+                self.change_turn()
 
-        if self.current_weapon:
-            self.current_weapon.draw(self.screen, self.camera_position, self.zoom_level)
-
-        # Clock and window refresh
-        self.game_clock.tick(g.FPS)
-
-        self.player_timer.update()
-        self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
-        if self.player_timer.get_countdown() <= 0:
-            self.change_turn()
-
-        # Afficher le message de l'arme actuelle
-        font = pygame.font.Font(None, 36)
-        text = font.render(self.weapon_message, True, (10, 10, 10))
-        self.screen.blit(text, (10, 10))
+            # Afficher le message de l'arme actuelle
+            font = pygame.font.Font(None, 36)
+            text = font.render(self.weapon_message, True, (10, 10, 10))
+            self.screen.blit(text, (10, 10))
 
         # Window refresh
         pygame.display.flip()
@@ -229,10 +265,12 @@ class Game:
                         if not self.current_worm.weapon_fired:
                             self.current_weapon = Grenade()
                             self.weapon_message = "Weapon: Grenade"
+                            self.weapon_bar.selected_weapon_index = 0
                     case pygame.K_2:
-                        if not self.current_worm.weapon_fired:
+                        if len(self.weapon_bar.weapon_identifiers) > 1:
                             self.current_weapon = Rocket()
                             self.weapon_message = "Weapon: Rocket"
+                            self.weapon_bar.selected_weapon_index = 1
 
             if event.type == pygame.KEYUP:
                 match event.key:
@@ -267,6 +305,32 @@ class Game:
                     self.zoom_level = max(
                         self.zoom_level - 0.1, 0.5
                     )  # Adjust the minimum zoom level as needed
+
+    def draw_worm_queue(self):
+        font = pygame.font.Font(None, 24)
+        queue_display_position = (10, 50)  # Top-left corner, adjust as needed
+        spacing = 30  # Vertical spacing between names
+
+        # Display a title for the queue
+        title_text = font.render("Next:", True, (255, 255, 255))
+        self.screen.blit(title_text, queue_display_position)
+
+        # Create a temporary queue to hold and display the next few worms without altering the main queue
+        temp_queue = self.worms_queue.queue.copy()  # Assuming Python 3.7+, for older versions use list(self.worms_queue.queue)
+        temp_queue.rotate(-1)  # Adjust based on your current worm handling, to not show the current worm as next
+
+        # Limit the number of worms shown in the queue
+        max_display = 3
+        count = 0
+
+        for worm in list(temp_queue):
+            if count >= max_display:
+                break
+            worm_name = worm.name
+            color = worm.color
+            text = font.render(worm_name, True, color)
+            self.screen.blit(text, (queue_display_position[0], queue_display_position[1] + spacing * (count + 1)))
+            count += 1
 
     def change_turn(self):
         self.current_worm.stop_moving()
