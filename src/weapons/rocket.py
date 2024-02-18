@@ -1,4 +1,5 @@
-from src.weapons import Projectile
+import pygame
+from .projectile import Projectile
 
 
 class Rocket(Projectile):
