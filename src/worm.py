@@ -13,16 +13,17 @@ class Worm(Sprite):
     """
 
     def __init__(
-        self,
-        *,
-        position: tuple[int, int] | Vector2 = (0, 0),
-        scale: float = 0.2,
-        name: str = "",
-        player: int = 1,
-        color=(255, 255, 255),
+            self,
+            *,
+            position: tuple[int, int] | Vector2 = (0, 0),
+            scale: float = 0.2,
+            name: str = "",
+            player: int = 1,
+            color=(255, 255, 255),
     ) -> None:
         super().__init__()
-        original_image: Surface = pygame.image.load("src/assets/worm.png")
+        self.frames = self.load_frames('src/assets/spelunky___worms_boggy_b_custom_skin_finished_by_doodlinghitman_da0tnrs-pre.png')
+        original_image: Surface = self.frames[0]
         scaled_size = (
             int(original_image.get_width() * scale),
             int(original_image.get_height() * scale),
@@ -45,14 +46,25 @@ class Worm(Sprite):
         self.aim_target: Vector2 | None = None
         self.weapon_fired: bool = False
 
+
+        self.current_frame = 0
+        self.animation_speed = 0.04  # Time in seconds to wait before switching to next frame
+        self.time_since_last_frame = 0
+        self.is_moving = False
+        self.facing_right = True
+
     def move_right(self) -> None:
         self.velocity.x = 1
+        self.is_moving = True
+        self.facing_right = True
 
     def move_left(self) -> None:
         self.velocity.x = -1
-
+        self.is_moving = True
+        self.facing_right = False
     def stop_moving(self) -> None:
         self.velocity.x = 0
+        self.is_moving = False
 
     def is_dead(self) -> bool:
         return self.hp <= 0
@@ -63,12 +75,12 @@ class Worm(Sprite):
 
         # Center the name text above the worm
         name_text_pos_x = (
-            self.rect.centerx - camera_position.x
-        ) * zoom_level - name_text.get_width() / 2
+                                  self.rect.centerx - camera_position.x
+                          ) * zoom_level - name_text.get_width() / 2
         name_text_pos_y = (
-            (self.rect.top - camera_position.y) * zoom_level
-            - name_text.get_height()
-            - 10 * zoom_level
+                (self.rect.top - camera_position.y) * zoom_level
+                - name_text.get_height()
+                - 10 * zoom_level
         )  # Adjust the offset as needed
         name_text_pos = Vector2(name_text_pos_x, name_text_pos_y)
         surface.blit(name_text, name_text_pos)
@@ -79,10 +91,10 @@ class Worm(Sprite):
 
         # Center the health bar above the worm
         hp_bar_pos_x = (
-            self.rect.centerx - camera_position.x
-        ) * zoom_level - hp_bar_width / 2
+                               self.rect.centerx - camera_position.x
+                       ) * zoom_level - hp_bar_width / 2
         hp_bar_pos_y = (
-            name_text_pos_y - hp_bar_height - 5 * zoom_level
+                name_text_pos_y - hp_bar_height - 5 * zoom_level
         )  # Place it above the name text with a small offset
         hp_bar_position = Vector2(hp_bar_pos_x, hp_bar_pos_y)
 
@@ -114,6 +126,40 @@ class Worm(Sprite):
             ),
         )
 
+    def load_frames(self, image_path):
+        scale: float = 5
+        num_frames = 12  # Adjust this based on your actual sprite sheet
+        sprite_sheet = pygame.image.load(image_path).convert_alpha()
+        frame_width = sprite_sheet.get_width() // num_frames
+        frame_height = sprite_sheet.get_height()
+
+        frames = []
+        for i in range(num_frames):
+            # Extract the frame from the sprite sheet
+            frame = sprite_sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
+            # Scale the frame
+            scaled_frame = pygame.transform.scale(frame, (int(frame_width * scale), int(frame_height * scale)))
+            frames.append(scaled_frame)
+
+        return frames
+
+    def animate(self, dt):
+        if self.is_moving:  # Only animate if the worm is moving
+            self.time_since_last_frame += dt
+            if self.time_since_last_frame >= self.animation_speed:
+                self.time_since_last_frame -= self.animation_speed
+                self.current_frame = (self.current_frame + 1) % len(self.frames)
+                self.update_image()
+        else:
+            self.time_since_last_frame = 0  # Reset the timer if not moving
+
+    def update_image(self):
+        # Flip the frame image if the worm is facing left
+        if not self.facing_right:
+            self.image = pygame.transform.flip(self.frames[self.current_frame], True, False)
+        else:
+            self.image = self.frames[self.current_frame]
+
     def is_charging(self):
         return self.weapon.charging if self.weapon else False
 
@@ -139,9 +185,10 @@ class Worm(Sprite):
     def weapon_equipped(self):
         return self.weapon_class is not None
 
-    def update(self, *args, **kwargs):
+    def update(self, dt, *args, **kwargs):
         self.position += self.velocity * self.speed
         self.rect.center = self.position
+        self.animate(dt)
 
         if self.weapon:
             self.weapon.set_position(self.position)

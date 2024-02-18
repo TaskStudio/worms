@@ -115,17 +115,27 @@ class Game:
                                   g.SCREEN_HEIGHT / 2 + quit_button_height / 2 + gap,
                                   self.quit_image, 1)
         self.game_paused = True
+        self.last_time = pygame.time.get_ticks()
+
+
 
     def main(self):
+        current_time = pygame.time.get_ticks()
+        dt = (current_time - self.last_time) / 1000.0  # Delta time in seconds
+        last_time = current_time
         self.running = True
         self.player_timer.start()
         while self.running:
             self._handle_events()
+            for worm in self.worms_group:
+                worm.update(dt)
             self.update()
 
         pygame.quit()
 
     def update(self):
+        current_time = pygame.time.get_ticks()
+        dt = pygame.time.Clock().tick(60) / 1000.0
         if self.game_paused:
             self.screen.fill((0, 0, 0))  # Clear the screen
             if self.resume_button.draw(self.screen):
@@ -183,7 +193,7 @@ class Game:
             for projectile in self.projectiles:
                 projectile.check_collision(self.worms_group, current_worm=self.current_worm)
 
-            self.worms_group.update()
+            self.worms_group.update(dt)
             self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
             self.projectiles.update()
             self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
