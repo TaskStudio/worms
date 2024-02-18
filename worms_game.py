@@ -95,7 +95,6 @@ class Game:
         self.camera_position = Vector2(0, 0)
         self.zoom_level = 1.0
         self.initial_zoom_level = 1.0
-        self.follow_projectile = False
 
     def main(self):
         self.running = True
@@ -131,10 +130,19 @@ class Game:
         # Fix the camera's y position as before
         self.camera_position.y = max(0, 0)  # Adjust as needed
 
-        if self.follow_projectile and len(self.projectiles) > 0:
-            projectile = next(iter(self.projectiles))  # Assuming we follow the first projectile in the group
-            self.camera_position.x = max(extended_boundary_left, min(projectile.rect.centerx - g.SCREEN_WIDTH / 2, extended_boundary_right))
-            self.camera_position.y = max(0, projectile.rect.centery - g.SCREEN_HEIGHT / 2)
+        if self.current_worm.is_charging() or (
+            self.current_worm.weapon_fired and self.current_worm.weapon is not None
+        ):
+            self.camera_position.x = max(
+                extended_boundary_left,
+                min(
+                    self.current_worm.weapon.rect.centerx - g.SCREEN_WIDTH / 2,
+                    extended_boundary_right,
+                ),
+            )
+            self.camera_position.y = max(
+                0, self.current_worm.weapon.rect.centery - g.SCREEN_HEIGHT / 2
+            )
 
         self.screen.fill(color=Color(255, 243, 230))
 
@@ -235,7 +243,6 @@ class Game:
                 ):
                     self.current_worm.charge_weapon()
                     self.projectiles.add(self.current_worm.weapon)
-                    self.follow_projectile = True
             if event.type == pygame.MOUSEBUTTONUP:
                 if self.current_worm.is_charging():
                     self.current_worm.release_weapon()
@@ -255,6 +262,8 @@ class Game:
 
     def change_turn(self):
         self.current_worm.stop_moving()
+        self.current_worm.reset_weapon()
+        self.current_worm.weapon_fired = False
 
         for _ in range(self.worms_queue.qsize()):
             worm = self.worms_queue.get()
@@ -270,19 +279,28 @@ class Game:
         self.player_timer.reset()
         self.player_timer.start()
 
-    def _generate_starting_worms(self, player_1_start_position: Vector2, player_2_start_position: Vector2) -> tuple[
-        Group, Group]:
+    def _generate_starting_worms(
+        self, player_1_start_position: Vector2, player_2_start_position: Vector2
+    ) -> tuple[Group, Group]:
         player_1_worms: Group[Worm] = Group(
             [
-                Worm(position=player_1_start_position + Vector2(i * 100, 0), name=f"Worm {i + 1}", player=1,
-                     color=(0, 0, 255))
+                Worm(
+                    position=player_1_start_position + Vector2(i * 100, 0),
+                    name=f"Worm {i + 1}",
+                    player=1,
+                    color=(0, 0, 255),
+                )
                 for i in range(g.WORMS_PER_PLAYER)
             ]
         )
         player_2_worms: Group[Worm] = Group(
             [
-                Worm(position=player_2_start_position - Vector2(i * 100, 0), name=f"Worm {i + 1}", player=2,
-                     color=(255, 0, 0))
+                Worm(
+                    position=player_2_start_position - Vector2(i * 100, 0),
+                    name=f"Worm {i + 1}",
+                    player=2,
+                    color=(255, 0, 0),
+                )
                 for i in range(g.WORMS_PER_PLAYER)
             ]
         )
