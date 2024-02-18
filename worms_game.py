@@ -372,6 +372,7 @@ class Game:
         self.player_timer.start()
 
         self.wind = Forces.generate_wind()
+        self.physics_manager.wind = self.wind
 
     def _generate_starting_worms(
         self, player_1_start_position: Vector2, player_2_start_position: Vector2
@@ -379,7 +380,7 @@ class Game:
         player_1_worms: Group[Worm] = Group(
             [
                 Worm(
-                    position=player_1_start_position + Vector2(i * 100, 0),
+                    position=player_1_start_position + Vector2(i * 150, 0),
                     name=f"Worm {i + 1}",
                     player=1,
                     color=(0, 0, 255),
@@ -390,7 +391,7 @@ class Game:
         player_2_worms: Group[Worm] = Group(
             [
                 Worm(
-                    position=player_2_start_position - Vector2(i * 100, 0),
+                    position=player_2_start_position - Vector2(i * 150, 0),
                     name=f"Worm {i + 1}",
                     player=2,
                     color=(255, 0, 0),
