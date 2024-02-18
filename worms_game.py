@@ -6,7 +6,6 @@ from pygame.sprite import Group
 from pygame.time import Clock
 
 import src.globals as g
-from src.button import Button
 from src.forces import Forces
 from src.map import MapElement
 from src.timer import Timer
@@ -96,31 +95,6 @@ class Game:
         self.camera_position = Vector2(0, 0)
         self.zoom_level = 1.0
         self.initial_zoom_level = 1.0
-        self.follow_projectile = False
-
-        self.text_color = (255, 255, 255)
-
-        # Load button images
-        self.resume_image = pygame.image.load("src/assets/button_resume.png").convert_alpha()
-        self.quit_image = pygame.image.load("src/assets/button_quit.png").convert_alpha()
-
-        # Calculate the button height dynamically from the image
-        resume_button_height = self.resume_image.get_height()
-        quit_button_height = self.quit_image.get_height()
-
-        # Position the resume button centered on the screen
-        self.resume_button = Button(g.SCREEN_WIDTH / 2 - self.resume_image.get_width() / 2,
-                                    g.SCREEN_HEIGHT / 2 - resume_button_height / 2,
-                                    self.resume_image, 1)
-
-        # Position the quit button below the resume button with a dynamic gap
-        gap = 20  # Define a gap between the buttons
-        self.quit_button = Button(g.SCREEN_WIDTH / 2 - self.quit_image.get_width() / 2,
-                                  g.SCREEN_HEIGHT / 2 + quit_button_height / 2 + gap,
-                                  self.quit_image, 1)
-
-        self.game_paused = True
-        self.menu_state = "main"
 
     def main(self):
         self.running = True
@@ -132,81 +106,82 @@ class Game:
         pygame.quit()
 
     def update(self):
-        self.screen.fill((0, 0, 0))  # Clear the screen each frame
-        if self.game_paused:
-            self.screen.fill((0, 0, 0))  # Clear the screen
-            if self.resume_button.draw(self.screen):
-                self.game_paused = False
-            if self.quit_button.draw(self.screen):
-                self.running = False
-        else:
-            dead_zone_left = g.SCREEN_WIDTH / 4
-            dead_zone_right = 3 * (g.SCREEN_WIDTH / 4)
+        dead_zone_left = g.SCREEN_WIDTH / 4
+        dead_zone_right = 3 * (g.SCREEN_WIDTH / 4)
 
-            extended_boundary_left = -475
-            extended_boundary_right = (
-                g.SCREEN_WIDTH + 475 - (g.SCREEN_WIDTH / self.zoom_level)
+        extended_boundary_left = -475
+        extended_boundary_right = (
+            g.SCREEN_WIDTH + 475 - (g.SCREEN_WIDTH / self.zoom_level)
+        )
+        if self.current_worm.rect.centerx < dead_zone_left:
+            desired_camera_x_position = (
+                self.current_worm.rect.centerx - g.SCREEN_WIDTH / 4
             )
-            if self.current_worm.rect.centerx < dead_zone_left:
-                desired_camera_x_position = (
-                    self.current_worm.rect.centerx - g.SCREEN_WIDTH / 4
-                )
-            elif self.current_worm.rect.centerx > dead_zone_right:
-                desired_camera_x_position = (
-                    self.current_worm.rect.centerx - (g.SCREEN_WIDTH / 4) * 3
-                )
-            else:
-                desired_camera_x_position = self.camera_position.x
+        elif self.current_worm.rect.centerx > dead_zone_right:
+            desired_camera_x_position = (
+                self.current_worm.rect.centerx - (g.SCREEN_WIDTH / 4) * 3
+            )
+        else:
+            desired_camera_x_position = self.camera_position.x
+        self.camera_position.x = max(
+            extended_boundary_left,
+            min(desired_camera_x_position, extended_boundary_right),
+        )
+        # Fix the camera's y position as before
+        self.camera_position.y = max(0, 0)  # Adjust as needed
+
+        if self.current_worm.is_charging() or (
+            self.current_worm.weapon_fired and self.current_worm.weapon is not None
+        ):
             self.camera_position.x = max(
                 extended_boundary_left,
-                min(desired_camera_x_position, extended_boundary_right),
+                min(
+                    self.current_worm.weapon.rect.centerx - g.SCREEN_WIDTH / 2,
+                    extended_boundary_right,
+                ),
             )
-            # Fix the camera's y position as before
-            self.camera_position.y = max(0, 0)  # Adjust as needed
-
-            if self.follow_projectile and len(self.projectiles) > 0:
-                projectile = next(iter(self.projectiles))  # Assuming we follow the first projectile in the group
-                self.camera_position.x = max(extended_boundary_left, min(projectile.rect.centerx - g.SCREEN_WIDTH / 2, extended_boundary_right))
-                self.camera_position.y = max(0, projectile.rect.centery - g.SCREEN_HEIGHT / 2)
-
-            self.screen.fill(color=Color(255, 243, 230))
-
-            self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
-
-            Forces.draw_wind(self.screen, self.wind)
-            Forces.draw_wind_arrow(
-                self.screen, self.wind, (self.screen.get_width() - 50, 50)
+            self.camera_position.y = max(
+                0, self.current_worm.weapon.rect.centery - g.SCREEN_HEIGHT / 2
             )
 
-            for projectile in self.projectiles:
-                projectile.check_collision(self.worms_group, current_worm=self.current_worm)
+        self.screen.fill(color=Color(255, 243, 230))
 
-            self.worms_group.update()
-            self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
-            self.projectiles.update()
-            self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
+        self.game_map.draw(self.screen, self.camera_position, self.zoom_level)
 
-            if self.current_worm.weapon_equipped():
-                self.current_worm.aim(pygame.mouse.get_pos() + self.camera_position)
-                if self.current_worm.is_charging():
-                    self.current_worm.weapon.draw(
-                        self.screen, self.camera_position, self.zoom_level
-                    )
+        Forces.draw_wind(self.screen, self.wind)
+        Forces.draw_wind_arrow(
+            self.screen, self.wind, (self.screen.get_width() - 50, 50)
+        )
 
-            # Clock and window refresh
-            self.game_clock.tick(g.FPS)
+        for projectile in self.projectiles:
+            projectile.check_collision(self.worms_group, current_worm=self.current_worm)
 
-            self.player_timer.update()
-            self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
-            if self.player_timer.is_finished():
-                self.change_turn()
+        self.worms_group.update()
+        self.draw_sprites_with_camera_and_zoom(self.worms_group, self.screen)
+        self.projectiles.update()
+        self.draw_sprites_with_camera_and_zoom(self.projectiles, self.screen)
 
-            # Afficher le message de l'arme actuelle
-            font = pygame.font.Font(None, 36)
-            text = font.render(self.weapon_message, True, (10, 10, 10))
-            self.screen.blit(text, (10, 10))
+        if self.current_worm.weapon_equipped():
+            self.current_worm.aim(pygame.mouse.get_pos() + self.camera_position)
+            if self.current_worm.is_charging():
+                self.current_worm.weapon.draw(
+                    self.screen, self.camera_position, self.zoom_level
+                )
 
-            # Window refresh
+        # Clock and window refresh
+        self.game_clock.tick(g.FPS)
+
+        self.player_timer.update()
+        self.player_timer.draw(self.screen, Vector2(g.SCREEN_WIDTH - 100, 50))
+        if self.player_timer.is_finished():
+            self.change_turn()
+
+        # Afficher le message de l'arme actuelle
+        font = pygame.font.Font(None, 36)
+        text = font.render(self.weapon_message, True, (10, 10, 10))
+        self.screen.blit(text, (10, 10))
+
+        # Window refresh
         pygame.display.flip()
 
     def draw_sprites_with_camera_and_zoom(self, group, surface):
@@ -268,7 +243,6 @@ class Game:
                 ):
                     self.current_worm.charge_weapon()
                     self.projectiles.add(self.current_worm.weapon)
-                    self.follow_projectile = True
             if event.type == pygame.MOUSEBUTTONUP:
                 if self.current_worm.is_charging():
                     self.current_worm.release_weapon()
@@ -288,6 +262,8 @@ class Game:
 
     def change_turn(self):
         self.current_worm.stop_moving()
+        self.current_worm.reset_weapon()
+        self.current_worm.weapon_fired = False
 
         for _ in range(self.worms_queue.qsize()):
             worm = self.worms_queue.get()
@@ -303,19 +279,28 @@ class Game:
         self.player_timer.reset()
         self.player_timer.start()
 
-    def _generate_starting_worms(self, player_1_start_position: Vector2, player_2_start_position: Vector2) -> tuple[
-        Group, Group]:
+    def _generate_starting_worms(
+        self, player_1_start_position: Vector2, player_2_start_position: Vector2
+    ) -> tuple[Group, Group]:
         player_1_worms: Group[Worm] = Group(
             [
-                Worm(position=player_1_start_position + Vector2(i * 100, 0), name=f"Worm {i + 1}", player=1,
-                     color=(0, 0, 255))
+                Worm(
+                    position=player_1_start_position + Vector2(i * 100, 0),
+                    name=f"Worm {i + 1}",
+                    player=1,
+                    color=(0, 0, 255),
+                )
                 for i in range(g.WORMS_PER_PLAYER)
             ]
         )
         player_2_worms: Group[Worm] = Group(
             [
-                Worm(position=player_2_start_position - Vector2(i * 100, 0), name=f"Worm {i + 1}", player=2,
-                     color=(255, 0, 0))
+                Worm(
+                    position=player_2_start_position - Vector2(i * 100, 0),
+                    name=f"Worm {i + 1}",
+                    player=2,
+                    color=(255, 0, 0),
+                )
                 for i in range(g.WORMS_PER_PLAYER)
             ]
         )
