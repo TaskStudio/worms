@@ -24,7 +24,7 @@ class Projectile(Sprite):
         self.launched = False
 
         self.launch_time = 0
-        self.charge_timer = Timer()
+        self.timer = Timer()
         self.destroyed = False
 
     def set_position(self, position: Vector2):
@@ -36,13 +36,13 @@ class Projectile(Sprite):
 
     def start_charging(self):
         self.charging = True
-        self.charge_timer.start()
+        self.timer.start()
 
     def stop_charging(self):
-        if self.charge_timer.get_seconds() == 0:
+        if self.timer.get_seconds() == 0:
             return
 
-        magnitude = self.charge_timer.get_seconds() * g.WORMS_STRENGTH
+        magnitude = self.timer.get_seconds() * g.WORMS_STRENGTH
         direction = self.target_pos - self.rb.start_pos
         direction.scale_to_length(magnitude * g.m)
         self.rb.apply_forces(direction)
@@ -67,11 +67,14 @@ class Projectile(Sprite):
     def update(self):
         self.rect.center = self.rb.position
         if self.charging:
-            self.charge_timer.update()
+            self.timer.update()
         if self.launched:
-            self.charge_timer.update()
+            self.timer.update()
 
-            if self.rect.y > g.SCREEN_HEIGHT:
+            if (
+                self.rect.y > g.SCREEN_HEIGHT
+                or self.timer.get_seconds() > g.PROJECTILE_DURATION
+            ):
                 self.launched = False
                 self.kill()
 
@@ -81,9 +84,7 @@ class Projectile(Sprite):
 
     def _draw_charge(self, screen, camera_position, zoom_level):
         if self.charging:
-            normalized_charge = min(
-                self.charge_timer.get_seconds() / g.MAX_CHARGE_DURATION, 1
-            )
+            normalized_charge = min(self.timer.get_seconds() / g.MAX_CHARGE_DURATION, 1)
 
             charge_color = (255 * normalized_charge, 255 * (1 - normalized_charge), 0)
 
