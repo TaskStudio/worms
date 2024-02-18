@@ -4,7 +4,8 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.sprite import Sprite
 
-from src.weapons import Projectile
+import src.globals as g
+from src.physics import Rigidbody
 
 
 class Worm(Sprite):
@@ -22,7 +23,7 @@ class Worm(Sprite):
         color=(255, 255, 255),
     ) -> None:
         Sprite.__init__(self)
-        # Rigidbody.__init__(self, mass=g.WORMS_MASS, position=position)
+        self.rb = Rigidbody(mass=g.WORMS_MASS, position=position)
 
         original_image: Surface = pygame.image.load("src/assets/worm.png")
         scaled_size = (
@@ -40,11 +41,6 @@ class Worm(Sprite):
 
         self.move_force = 0.1
         self.is_moving = False
-
-        self.weapon_class: type[Projectile] | None = None
-        self.weapon: Projectile | None = None
-        self.aim_target: Vector2 | None = None
-        self.weapon_fired: bool = False
 
     def move_right(self):
         if not self.is_moving:
@@ -120,34 +116,6 @@ class Worm(Sprite):
             ),
         )
 
-    def is_charging(self):
-        return self.weapon.charging if self.weapon else False
-
-    def set_weapon(self, weapon_class: type[Projectile]):
-        self.weapon_class = weapon_class
-
-    def reset_weapon(self):
-        self.weapon = None
-        self.weapon_class = None
-
-    def aim(self, target: Vector2):
-        self.aim_target = target
-
-    def charge_weapon(self):
-        self.weapon = self.weapon_class()
-        self.weapon.set_position(Vector2(self.rect.center))
-        self.weapon.set_target(self.aim_target)
-        self.weapon.start_charging()
-
-    def release_weapon(self):
-        self.weapon.stop_charging()
-        self.weapon_fired = True
-
-    def weapon_equipped(self):
-        return self.weapon_class is not None
-
     def update(self) -> None:
         super().update()
-        # self.rect.center = self.position
-        # if self.weapon and not self.weapon_fired:
-        #     self.weapon.set_position(Vector2(self.rect.center))
+        self.rect.center = self.rb.position
