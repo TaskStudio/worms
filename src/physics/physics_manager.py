@@ -7,8 +7,11 @@ class PhysicsManager:
     def __init__(
         self, game_clock: Clock, rigidbodies: list[Rigidbody] | None = None
     ) -> None:
-        self.rigidbodies: list[Rigidbody] = rigidbodies
+        self.rigidbodies: list[Rigidbody] = rigidbodies if rigidbodies else []
         self.game_clock: Clock = game_clock
+
+    def add_rigidbody(self, rb: Rigidbody) -> None:
+        self.rigidbodies.append(rb)
 
     def update(self) -> None:
         for rb in self.rigidbodies:
