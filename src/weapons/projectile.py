@@ -9,10 +9,10 @@ from src.physics import Rigidbody
 from src.timer import Timer
 
 
-class Projectile(Sprite, Rigidbody):
+class Projectile(Sprite):
     def __init__(self):
         Sprite.__init__(self)
-        Rigidbody.__init__(self, mass=1)
+        self.rb = Rigidbody(mass=1)
 
         self.image = pygame.Surface((5, 5))
         self.image.fill(Color(255, 0, 0))
@@ -20,7 +20,6 @@ class Projectile(Sprite, Rigidbody):
 
         self.target_pos = Vector2()
 
-        self.charging_start_time = None
         self.charging = False
         self.launched = False
 
@@ -29,8 +28,8 @@ class Projectile(Sprite, Rigidbody):
         self.destroyed = False
 
     def set_position(self, position: Vector2):
-        self.start_pos = position
-        self.position = position
+        self.rb.start_pos = position
+        self.rb.position = position
 
     def set_target(self, target: Vector2):
         self.target_pos = target
@@ -44,9 +43,9 @@ class Projectile(Sprite, Rigidbody):
             return
 
         magnitude = self.charge_timer.get_seconds() * g.WORMS_STRENGTH
-        direction = self.target_pos - self.start_pos
+        direction = self.target_pos - self.rb.start_pos
         direction.scale_to_length(magnitude * g.m)
-        self.apply_forces(direction)
+        self.rb.apply_forces(direction)
 
         self.charging = False
         self.launched = True
@@ -65,7 +64,7 @@ class Projectile(Sprite, Rigidbody):
         super().kill()
 
     def update(self):
-        self.rect.center = self.position
+        self.rect.center = self.rb.position
         if self.charging:
             self.charge_timer.update()
         if self.launched:
