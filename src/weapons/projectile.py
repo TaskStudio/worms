@@ -10,9 +10,10 @@ from src.timer import Timer
 
 
 class Projectile(Sprite):
-    def __init__(self):
-        Sprite.__init__(self)
+    def __init__(self, wind=Vector2(0, 0)):
+        super().__init__()
         self.rb = Rigidbody(mass=1)
+        self.wind = wind
 
         self.image = pygame.Surface((5, 5))
         self.image.fill(Color(255, 0, 0))

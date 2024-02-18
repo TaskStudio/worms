@@ -283,7 +283,7 @@ class Game:
                             self.weapon_bar.selected_weapon_index = 0
                     case pygame.K_2:
                         if len(self.weapon_bar.weapon_identifiers) > 1:
-                            self.current_weapon = Rocket()
+                            self.current_weapon = Rocket(wind=self.wind)
                             self.weapon_message = "Weapon: Rocket"
                             self.weapon_bar.selected_weapon_index = 1
 
