@@ -337,7 +337,7 @@ class Game:
             self.worms_queue.queue.copy()
         )  # Assuming Python 3.7+, for older versions use list(self.worms_queue.queue)
         temp_queue.rotate(
-            -1
+            0
         )  # Adjust based on your current worm handling, to not show the current worm as next
 
         # Limit the number of worms shown in the queue
