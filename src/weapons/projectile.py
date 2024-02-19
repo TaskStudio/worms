@@ -26,7 +26,7 @@ class Projectile(Sprite):
 
         self.launch_time = 0
         self.timer = Timer()
-        self.destroyed = False
+        self.exploded = False
 
     def set_position(self, position: Vector2):
         self.rb.start_pos = position
@@ -35,10 +35,8 @@ class Projectile(Sprite):
     def set_target(self, target: Vector2):
         self.target_pos = target
 
-    def explode(self, screen):
-        explosion_color = (255, 0, 0)
-        pygame.draw.circle(screen, explosion_color, self.rect.center, self.explosion_radius)
-        self.kill()
+    def explode(self):
+        self.exploded = True
 
     def start_charging(self):
         self.charging = True
@@ -57,19 +55,15 @@ class Projectile(Sprite):
         self.launched = True
         self.launch_time = self.timer.get_seconds()
 
-    def check_collision(self, worms_group: Group, *, current_worm: "Worm", screen):
+    def check_collision(self, worms_group: Group, *, current_worm: "Worm"):
         if self.launched:
             hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
             for hit_worm in hit_worms:
                 if hit_worm != current_worm:
                     hit_worm.hp = 0
                     worms_group.remove(hit_worm)
-                    self.explode(screen)
+                    self.explode()
                     break
-
-    def kill(self):
-        self.destroyed = True
-        super().kill()
 
     def update(self):
         self.rect.center = self.rb.position
@@ -81,10 +75,14 @@ class Projectile(Sprite):
             if self.timer.get_seconds() > g.PROJECTILE_DURATION:
                 self.launched = False
                 self.kill()
+        if self.exploded:
+            self.kill()
 
     def draw(self, screen: Surface, camera_position, zoom_level):
         if self.charging:
             self._draw_charge(screen, camera_position, zoom_level)
+        if self.exploded:
+            self._draw_explosion(screen, camera_position, zoom_level)
 
     def _draw_charge(self, screen, camera_position, zoom_level):
         if self.charging:
@@ -108,3 +106,15 @@ class Projectile(Sprite):
                 math.pi * 2 * normalized_charge,
                 int(5 * zoom_level),
             )
+
+    def _draw_explosion(self, screen, camera_position, zoom_level):
+        if self.exploded:
+            explosion_radius = self.explosion_radius * zoom_level
+            explosion_center = (self.rect.center - camera_position) * zoom_level
+            pygame.draw.circle(
+                screen,
+                (255, 0, 0),
+                (int(explosion_center[0]), int(explosion_center[1])),
+                int(explosion_radius),
+            )
+            self.exploded = False
