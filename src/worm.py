@@ -44,6 +44,10 @@ class Worm(Sprite):
 
         self.weapon_fired = False
 
+        self.arrow = pygame.image.load("src/assets/arrow.png")
+        self.arrow = pygame.transform.scale(self.arrow, (30, 30))
+        self.arrow = pygame.transform.rotate(self.arrow, -90)
+
     def move_right(self):
         if not self.is_moving:
             self.rb.set_velocity(Vector2(self.move_force, 0))
@@ -61,7 +65,7 @@ class Worm(Sprite):
     def is_dead(self) -> bool:
         return self.hp <= 0
 
-    def draw_info(self, surface, camera_position, zoom_level):
+    def draw_info(self, surface, camera_position, zoom_level, show_arrow):
         font = pygame.font.Font(None, int(24 * zoom_level))
         name_text = font.render(f"{self.name}", True, self.color)
 
@@ -117,6 +121,15 @@ class Worm(Sprite):
                 hp_bar_height,
             ),
         )
+
+        if show_arrow:
+            surface.blit(
+                self.arrow,
+                (
+                    self.rect.centerx - camera_position.x - 15,
+                    self.rect.centery - camera_position.y - 125,
+                ),
+            )
 
     def update(self) -> None:
         super().update()

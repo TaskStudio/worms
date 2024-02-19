@@ -252,7 +252,12 @@ class Game:
             surface.blit(scaled_image, adjusted_pos)
 
             if isinstance(sprite, Worm):
-                sprite.draw_info(surface, self.camera_position, self.zoom_level)
+                sprite.draw_info(
+                    surface,
+                    self.camera_position,
+                    self.zoom_level,
+                    show_arrow=True if sprite == self.current_worm else False,
+                )
 
     def _handle_events(self):
         for event in pygame.event.get():
