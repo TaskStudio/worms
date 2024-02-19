@@ -1,0 +1,307 @@
+* 10a741b Update README
+* 83ee3d3 added left click
+*   4e20d28 Merge pull request #27 from TaskStudio/WRMS-28-weapon-blast-radius
+|\  
+| * 11f7b38 Fix explosion position
+| *   7e3b9ad Merge remote-tracking branch 'origin/WRMS-28-weapon-blast-radius' into WRMS-28-weapon-blast-radius
+| |\  
+| | * 22a2872 Ignore __pycache__ directories
+| * |   76ddbc4 Pull of dev
+| |\ \  
+| |/ /  
+|/| |   
+* | | ac9155e Fix projectile lifetime
+| * | 0d489b6 Add explosion circle
+|/ /  
+* | 67bfe01 Fix projectile lifetime
+* | f77d537 Fix  arrow over current worm
+* | ee44cd5 Add arrow over current worm
+* | 72094e8 Fix wind reset on turn change
+* |   05cda75 Merge remote-tracking branch 'origin/dev' into dev
+|\ \  
+| * \   efcaf18 Merge pull request #26 from TaskStudio/WRMS-47-fix-projectile-wind
+| |\ \  
+| | * \   1cddb23 Complete fix rocket projectile
+| | |\ \  
+| | * | | 4d78486 Fix wind arrow
+| | * | | 9865c59 Fix wind
+| | * | | facff74 Try fixing wind
+* | | | | bdb1e1b Remove map generation on button
+|/ / / /  
+* | / / 55a7d0e Kill projectiles when alive for too long
+| |/ /  
+|/| |   
+* | |   2dc50b5 Merge pull request #25 from TaskStudio/WRMS-50-fix-ui
+|\ \ \  
+| * | | 74a4ecb Fix path
+| * | | 7ac4a11 Fix path
+| * | | d541cb8 Add image
+| * | | 00b4c09 Scale new image
+| * | | 1cb5712 Add Sainte Roquette
+| * | | 68e5bd3 Change grenade UI
+| |/ /  
+* | |   c4a921b Merge pull request #24 from TaskStudio/WRMS-49-fixing-camera
+|\ \ \  
+| |/ /  
+|/| |   
+| * | ddd7fdf fixed worm queue
+|/ /  
+* | 38330b9 Fix weapon reset on turn change
+* |   bef4177 Merge pull request #23 from TaskStudio/WRMS-5-gravity
+|\ \  
+| * | 0b2d286 Fix worm movement
+| * |   8ba27e1 Merge dev
+| |\ \  
+| |/ /  
+|/| |   
+* | | 84b308d Delete src/weapons/__pycache__ directory
+* | | 264bc99 Update .gitignore
+| * | 4aa9a98 Remove pycache
+| * | 4b0d551 Prevent multiple weapon fire
+| * | 778db57 Make worms not go through ground
+| * | 32e7589 Handle previous velocity in apply_forces
+| * | 0c7fe99 Add rigidbody component to worms
+| * | 64a3a57 Add rigidbody component to projectiles
+| * | 5dc6f18 FIX RIGIDBODY FJQSKLFHQSJKHFJQSKOLFGQSYHUILOf
+| * | efc999e Disable camera placement to weapon when charging
+| * | 09fa672 Worm is no longer a Rigidbody :(
+| * | 42483d8 Projectile works with Rigidbody !
+| * | 2797f0e Add global physic constants
+| * | ae9b563 Adjust grenade init
+| * | 9bc750f Fix Rigidbody trajectory calc
+| * | c86027d Add add_rigidbody method
+| * | 61b0f27 Add physics manager in main class
+| * | 37d728f Fix worm movement
+| * | e724808 Refacto physics
+| * | 8dc158a Fix projectile spawn position
+| * |   4933536 Merge dev
+| |\ \  
+| * | | ea2d3b1 Fix worm
+| * | |   f481932 Merge remote-tracking branch 'origin/dev' into WRMS-5-gravity
+| |\ \ \  
+| * | | | 5256792 Fix gitignore
+| * | | | 5f912fc Add physics manager
+| * | | |   ebd8b0b Merge remote-tracking branch 'origin/dev' into WRMS-5-gravity
+| |\ \ \ \  
+| | | |_|/  
+| | |/| |   
+| * | | | 920a8e7 Fix frame by frame moving worms
+| * | | | a313012 Simplify rigidbody and worms parameters
+| * | | | 9575c01 Add Rigidbody class for gravity property
+| | | | | * a9f18a7 ready to merge
+| | | | | * a93425e Remove Python cache files from repository
+| | | | | *   2526d54 Merge remote-tracking branch 'origin/dev' into WRMS-13-animation
+| | | | | |\  
+| |_|_|_|_|/  
+|/| | | | |   
+* | | | | |   47f70cd Merge pull request #20 from TaskStudio/WRMS-29-worms-name
+|\ \ \ \ \ \  
+| * | | | | | c267060 added worm-turn
+* | | | | | |   b162455 Merge pull request #19 from TaskStudio/WRMS-30-weapon-bar
+|\ \ \ \ \ \ \  
+| * | | | | | | 41ae97f added weapon bar
+| |/ / / / / /  
+* | | | | | |   94bbbe9 Merge pull request #22 from TaskStudio/WRMS-46-fix-worm-death
+|\ \ \ \ \ \ \  
+| |/ / / / / /  
+|/| | | | | |   
+| * | | | | | e63ca77 Improve worms death logic
+| | | | | | * 143afb7 added projectile sprite
+| | | | | | * 1513055 added worms animation
+| |_|_|_|_|/  
+|/| | | | |   
+* | | | | |   4737c1a Merge pull request #18 from TaskStudio/WRMS-31-main-menu
+|\ \ \ \ \ \  
+| |_|_|_|_|/  
+|/| | | | |   
+| * | | | | 5f330e5 pulled dev
+| * | | | |   eb83dae Merge remote-tracking branch 'origin/dev' into WRMS-31-main-menu
+| |\ \ \ \ \  
+| |/ / / / /  
+|/| | | | |   
+* | | | | | 1a95047 Fix weapon camera following
+| |_|_|_|/  
+|/| | | |   
+| * | | | 6c34065 added simple main menu
+|/ / / /  
+* | | |   1c9cd78 Merge pull request #17 from TaskStudio/WRMS-40-Follow-projectile
+|\ \ \ \  
+| |/ / /  
+|/| | |   
+| * | | 19ab823 added camera following projectile on shoot
+* | | |   01fadbf Merge pull request #15 from TaskStudio/WRMS-18-display-player-name-and-hp
+|\ \ \ \  
+| |/ / /  
+|/| | |   
+| * | |   ad7e097 Pull dev
+| |\ \ \  
+| |/ / /  
+|/| | |   
+* | | |   071490d Merge pull request #16 from TaskStudio/WRMS-43-limit-worms-projectile-throw-to-1
+|\ \ \ \  
+| |_|_|/  
+|/| | |   
+| * | | b03f9ee Add destroyed attribute to projectile
+| * | | 585509f Add reset_weapon method
+| * | | 5bae848 Limit projectiles per worm to 1 and set timer to 5 after throw
+| * | | 1ac08d7 Add set_duration method to Timer
+|/ / /  
+| * | 095bb47 Add health bar
+| * |   28b0685 Pull dev branch
+| |\ \  
+| |/ /  
+|/| |   
+* | |   cae6bda Merge pull request #10 from TaskStudio/WRMS-26-weapons
+|\ \ \  
+| * | | aba62f4 Refacto
+| * | | d6fb833 Move weapons in weapons folder
+| * | | 6cedf61 Remove gitignore
+| * | |   29e457c Merge remote-tracking branch 'origin/dev' into WRMS-26-weapons
+| |\ \ \  
+| |/ / /  
+|/| | |   
+| * | | 5595cbc Add weapons and wind
+| | * | 36b94ff Add display of worm name and HP
+| |/ /  
+|/| |   
+* | |   a07b237 Merge pull request #8 from TaskStudio/WRMS-16-Camera-mov
+|\ \ \  
+| * | | 8446ef4 FIXED ZOOM 3
+| * | |   c47af30 Merge remote-tracking branch 'origin/dev' into WRMS-16-Camera-mov
+| |\ \ \  
+| |/ / /  
+|/| | |   
+* | | |   3276d8e Merge pull request #14 from TaskStudio/WRMS-41-fix-player-timer
+|\ \ \ \  
+| * | | | e396da7 Fix timer
+|/ / / /  
+* | | |   62e508a Merge pull request #13 from TaskStudio/petite-refacto-pepouze
+|\ \ \ \  
+| |_|_|/  
+|/| | |   
+| * | | 4205a95 Add comments
+| * | |   630d5fc Merge remote-tracking branch 'origin/dev' into petite-refacto-pepouze
+| |\ \ \  
+| |/ / /  
+|/| | |   
+* | | |   c0ddf0a Merge pull request #12 from TaskStudio/WRMS-17-timer
+|\ \ \ \  
+| * | | | cc4a6a8 Add timer in Projectile class
+| * | | | 3882d4d Add player timer and game clock
+| * | | |   dcc60f6 Merge remote-tracking branch 'origin/dev' into WRMS-17-timer
+| |\ \ \ \  
+| * | | | | a592b2e Add Timer class
+| | | * | | 8576d52 Extract projectile collision logic
+| | | * | | 4e2ba3f Simplify projectile charge draw
+| |_|/ / /  
+|/| | | |   
+* | | | | 12db81d Revert last 2 commits
+* | | | | 18a7674 Extract projectile collision logic
+* | | | | ccc9ab2 Simplify projectile charge draw
+| |/ / /  
+|/| | |   
+* | | |   14b5891 Merge pull request #11 from TaskStudio/WRMS-19-worms-stats
+|\ \ \ \  
+| |/ / /  
+|/| | |   
+| * | | 57e359a Handle worms death
+| * | | 3bee61f Add worms stats
+|/ / /  
+| * | 8b13e64 Finalised cam
+| * |   6a451c2 Merge remote-tracking branch 'origin/dev' into WRMS-16-Camera-mov
+| |\ \  
+| |/ /  
+|/| |   
+* | |   b760754 Merge remote-tracking branch 'origin/dev' into dev
+|\ \ \  
+| * | | b1bfbcc Delete .idea directory
+| * | |   0feb941 Merge pull request #9 from TaskStudio/WRMS-24-collisions
+| |\ \ \  
+| | | |/  
+| | |/|   
+| | * | 46921e5 Add collision that kills worm on projectile impact
+| |/ /  
+* | | 774eb82 Remove .idea
+| | * fa8a03a remove .idea
+| | * ee1dd2b Fixed charge projectile/ map boundaries
+| | * 0434b74 Changed local variable to global
+| | * c473b38 fixed zoom problem
+| | * a6d0d3c scaled worms and pulled new commit from dev
+| | *   f567a50 Merge remote-tracking branch 'origin/dev' into WRMS-16-Camera-mov
+| | |\  
+| | |/  
+| |/|   
+| * | a77489e Merge pull request #7 from TaskStudio/WRMS-9-trajectory-equation
+|/| | 
+| * |   0790bf6 Merge of dev pull
+| |\ \  
+| |/ /  
+|/| |   
+| * | f174418 Improve the trajectory equation on a terrestrial scale
+| * | f4de968 Add first draft of the trajectory equation
+| * | 388c491 Add line trajectory
+| * | 096ff15 Fix projectile direction
+| * | 0d9ffe1 Fixed charge bar draw
+| | * 7afb4b7 fixed projectile camera
+| | * febc649 ADDED ZOOM
+| |/  
+|/|   
+* |   11df76e Merge pull request #5 from TaskStudio/WRMS-20-refacto-main-into-a-class
+|\ \  
+| |/  
+|/|   
+| * c3265de Refacto
+* | 32712c5 Pull from dev
+|\| 
+| *   eaee97a Merge pull request #2 from TaskStudio/WRMS-7-two-players-worms-control
+| |\  
+| | *   3da1bec Merge dev
+| | |\  
+| | |/  
+| |/|   
+| * |   ffd905a Merge pull request #4 from TaskStudio/WRMS-12-game-map-generation
+| |\ \  
+| | * \   b83fde4 Merge dev
+| | |\ \  
+| | |/ /  
+| |/| |   
+| | * | 856b3f4 Add map generation in game
+| | * | cea0350 Add map class with map generation logic
+| | | * a45f59d Merge dev
+| | | *   be2fbd2 Merge remote-tracking branch 'origin/dev' into WRMS-7-two-players-worms-control
+| | | |\  
+| | |_|/  
+| |/| |   
+| * | | 909f7dd Delete src/__pycache__ directory
+| | | * e2446c0 Add multiple worms control
+| | | * 72c9cd8 Add global values
+| | |/  
+* | | 256736b Add pycache in gitignore
+* | | b0fc02f Add gitignore pycache
+|/ /  
+* |   130d1f0 Merge pull request #1 from TaskStudio/WRMS-10-projectile-throw
+|\ \  
+| |/  
+|/|   
+| *   65a4a5a Pull of dev to WRMS-10-projectile-throw
+| |\  
+| |/  
+|/|   
+* | fcad723 Update gitignore
+* | 8e7f5ca Add IDE setup to README.md
+* | b22823d Update gitignore
+| * ae9640c Apply last changes from Pull Request
+| * 1aa87ec Apply Pull Request changes
+| * 906370a Add charge bar projetile and speed
+| * 5739315 Add straight line projectile
+|/  
+* a3ecc56 Export .idea files
+* f261da6 Add worm sprite
+* f3f200a Add base worm render and moving system
+* 0fa72e6 Add base worm class
+* 621339e Add isort
+* 8afd03b Add main game loop
+* 7115d2f Add base classes
+* 31c7895 Fix readme
+* fa04bf6 Create README.md
+* 6a2d019 Initial commit
