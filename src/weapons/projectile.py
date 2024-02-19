@@ -49,6 +49,7 @@ class Projectile(Sprite):
 
         self.charging = False
         self.launched = True
+        self.launch_time = self.timer.get_seconds()
 
     def check_collision(self, worms_group: Group, *, current_worm: "Worm"):
         if self.launched:
