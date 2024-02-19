@@ -15,4 +15,4 @@ class Grenade(Projectile):
         super().update()
         if self.launched:
             if self.timer.get_seconds() - self.launch_time > 3:
-                self.kill()
+                self.explode()
