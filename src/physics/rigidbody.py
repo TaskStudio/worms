@@ -41,3 +41,5 @@ class Rigidbody:
             + self.start_pos.y
             + (0.5 * self.gravity * self.time**2)
         )
+        if self.position.y > g.SCREEN_HEIGHT - 50:
+            self.position.y = g.SCREEN_HEIGHT - 50

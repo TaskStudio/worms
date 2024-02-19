@@ -134,5 +134,3 @@ class Worm(Sprite):
     def update(self) -> None:
         super().update()
         self.rect.center = self.rb.position
-        if self.rect.centery > g.SCREEN_HEIGHT - 50:
-            self.rect.centery = g.SCREEN_HEIGHT - 50

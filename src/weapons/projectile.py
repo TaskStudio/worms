@@ -71,10 +71,7 @@ class Projectile(Sprite):
         if self.launched:
             self.timer.update()
 
-            if (
-                self.rect.y > g.SCREEN_HEIGHT
-                or self.timer.get_seconds() > g.PROJECTILE_DURATION
-            ):
+            if self.timer.get_seconds() > g.PROJECTILE_DURATION:
                 self.launched = False
                 self.kill()
 
