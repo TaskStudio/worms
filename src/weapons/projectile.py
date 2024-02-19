@@ -12,6 +12,7 @@ from src.timer import Timer
 class Projectile(Sprite):
     def __init__(self):
         super().__init__()
+        self.explosion_radius = None
         self.rb = Rigidbody(mass=1)
 
         self.image = pygame.Surface((5, 5))
@@ -34,6 +35,11 @@ class Projectile(Sprite):
     def set_target(self, target: Vector2):
         self.target_pos = target
 
+    def explode(self, screen):
+        explosion_color = (255, 0, 0)
+        pygame.draw.circle(screen, explosion_color, self.rect.center, self.explosion_radius)
+        self.kill()
+
     def start_charging(self):
         self.charging = True
         self.timer.start()
@@ -50,14 +56,14 @@ class Projectile(Sprite):
         self.charging = False
         self.launched = True
 
-    def check_collision(self, worms_group: Group, *, current_worm: "Worm"):
+    def check_collision(self, worms_group: Group, *, current_worm: "Worm", screen):
         if self.launched:
             hit_worms = pygame.sprite.spritecollide(self, worms_group, False)
             for hit_worm in hit_worms:
                 if hit_worm != current_worm:
                     hit_worm.hp = 0
                     worms_group.remove(hit_worm)
-                    self.kill()
+                    self.explode(screen)
                     break
 
     def kill(self):

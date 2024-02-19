@@ -210,7 +210,7 @@ class Game:
 
             for projectile in self.projectiles:
                 projectile.check_collision(
-                    self.worms_group, current_worm=self.current_worm
+                    self.worms_group, current_worm=self.current_worm, screen=self.screen
                 )
 
             self.worms_group.update()
