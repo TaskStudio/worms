@@ -126,8 +126,8 @@ class Worm(Sprite):
             surface.blit(
                 self.arrow,
                 (
-                    self.rect.centerx - camera_position.x - 15,
-                    self.rect.centery - camera_position.y - 125,
+                    (self.rect.centerx - camera_position.x - 15) * zoom_level,
+                    (self.rect.centery - camera_position.y - 125) * zoom_level,
                 ),
             )
 
