@@ -294,22 +294,23 @@ class Game:
 
             # Mouse events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.current_weapon and not self.current_worm.weapon_fired:
-                    self.current_weapon.set_position(
-                        Vector2(self.current_worm.rect.center)
-                    )
-                    self.current_weapon.set_target(Vector2(pygame.mouse.get_pos()))
-                    self.current_weapon.start_charging()
-                    self.projectiles.add(self.current_weapon)
-            if event.type == pygame.MOUSEBUTTONUP:
-                if self.current_weapon and not self.current_worm.weapon_fired:
-                    self.current_weapon.stop_charging()
-                    self.current_worm.weapon_fired = True
-                    self.player_timer.set_duration(5)
-                    self.player_timer.reset()
-                    self.player_timer.start()
+                if event.button == 1:
+                    if self.current_weapon and not self.current_worm.weapon_fired:
+                        self.current_weapon.set_position(Vector2(self.current_worm.rect.center))
+                        self.current_weapon.set_target(Vector2(pygame.mouse.get_pos()))
+                        self.current_weapon.start_charging()
+                        self.projectiles.add(self.current_weapon)
 
-                    self.physics_manager.add_rigidbody(self.current_weapon.rb)
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    if self.current_weapon and not self.current_worm.weapon_fired:
+                        self.current_weapon.stop_charging()
+                        self.current_worm.weapon_fired = True
+                        self.player_timer.set_duration(5)
+                        self.player_timer.reset()
+                        self.player_timer.start()
+
+                        self.physics_manager.add_rigidbody(self.current_weapon.rb)
 
             if event.type == pygame.MOUSEWHEEL:
                 if event.y > 0:  # Scroll up to zoom in
